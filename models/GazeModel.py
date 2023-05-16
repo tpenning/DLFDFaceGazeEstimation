@@ -3,8 +3,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
-from utils.angles import convert_angle, avg_angle_diff
+from utils.angles import convert_angle, angular_loss
 from utils.device import get_device
+from utils.plot import plot_losses
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
@@ -18,17 +19,15 @@ class GazeModel(nn.Module):
         self.device = device
         self.to(device)
 
-        self.train_data = None
-        self.eval_data = None
         self.optimizer = None
         self.l1_crit = nn.functional.l1_loss
-        self.deg_crit = avg_angle_diff
+        self.angular_crit = angular_loss
 
-    def _train(self):
+    def _train(self, train_data):
         self.train()
 
         avg_l1_loss, avg_angle_loss = 0, 0
-        for data, label in tqdm(self.train_data):
+        for data, label in tqdm(train_data):
             try:
                 self.optimizer.zero_grad()
                 label = label.to(self.device)
@@ -36,7 +35,7 @@ class GazeModel(nn.Module):
 
                 l1_loss = self.l1_crit(output, label)
                 avg_l1_loss += l1_loss.item()
-                avg_angle_loss += self.deg_crit(convert_angle(output), convert_angle(label)).item()
+                avg_angle_loss += self.angular_crit(convert_angle(output), convert_angle(label)).item()
 
                 # Update the network
                 l1_loss.backward()
@@ -47,47 +46,46 @@ class GazeModel(nn.Module):
                 logging.error(e, exc_info=True)
                 continue
 
-        avg_l1_loss /= len(self.train_data)
-        avg_angle_loss /= len(self.train_data)
+        avg_l1_loss /= len(train_data)
+        avg_angle_loss /= len(train_data)
         return avg_l1_loss, avg_angle_loss
 
-    def _eval(self):
+    def _eval(self, validation_data):
         self.eval()
 
         avg_l1_loss, avg_angle_loss = 0, 0
         with torch.no_grad():
-            for data, label in tqdm(self.eval_data):
+            for data, label in tqdm(validation_data):
                 label = label.to(self.device)
                 output = self.forward(data)
 
                 avg_l1_loss += self.l1_crit(output, label).item()
-                avg_angle_loss += self.deg_crit(convert_angle(output), convert_angle(label)).item()
+                avg_angle_loss += self.angular_crit(convert_angle(output), convert_angle(label)).item()
 
-        avg_l1_loss /= len(self.eval_data)
-        avg_angle_loss /= len(self.eval_data)
+        avg_l1_loss /= len(validation_data)
+        avg_angle_loss /= len(validation_data)
         return avg_l1_loss, avg_angle_loss
 
-    def learn(self, train_data, eval_data, epochs, lr):
-        self.train_data, self.eval_data = train_data, eval_data
-        self.optimizer = optim.Adam(self.parameters(), lr=lr)
+    def _learn_step(self, learn_data, eval_data, epochs):
+        learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses = [], [], [], []
+        for _ in tqdm(range(epochs)):
+            learn_l1_loss, learn_angular_loss = self._train(learn_data)
+            eval_l1_loss, eval_angular_loss = self._eval(eval_data)
 
-        train_l1_losses, train_angle_losses, eval_l1_losses, eval_angle_losses = [], [], [], []
-        for epoch in tqdm(range(epochs)):
-            train_l1_loss, train_angle_loss = self._train()
-            eval_l1_loss, eval_angle_loss = self._eval()
-
-            train_l1_losses.append(train_l1_loss)
-            train_angle_losses.append(train_angle_loss)
+            learn_l1_losses.append(learn_l1_loss)
+            learn_angular_losses.append(learn_angular_loss)
             eval_l1_losses.append(eval_l1_loss)
-            eval_angle_losses.append(eval_angle_loss)
+            eval_angular_losses.append(eval_angular_loss)
 
-            print(f"Epoch {epoch} results:")
-            print(f"Training losses: l1 = {train_l1_loss}, deg = {train_angle_loss}")
-            print(f"Evaluation losses: l1 = {eval_l1_loss}, deg = {eval_angle_loss}")
+        return learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses
 
-        print("Training losses:")
-        print(f"L1: {train_l1_losses}")
-        print(f"Angle: {train_angle_losses}")
-        print("Evaluation losses:")
-        print(f"L1: {eval_l1_losses}")
-        print(f"Angle: {eval_angle_losses}")
+    def learn(self, train_data, calibration_data, validation_data, train_epochs, calibration_epochs, learning_rate):
+        self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+
+        train_l1_losses, train_angular_losses, eval1_l1_losses, eval1_angular_losses = \
+            self._learn_step(train_data, validation_data, train_epochs)
+        calibration_l1_losses, calibration_angular_losses, eval2_l1_losses, eval2_angular_losses = \
+            self._learn_step(calibration_data, validation_data, calibration_epochs)
+
+        plot_losses(train_l1_losses, train_angular_losses, eval1_l1_losses, eval1_angular_losses,
+                    calibration_l1_losses, calibration_angular_losses, eval2_l1_losses, eval2_angular_losses)
