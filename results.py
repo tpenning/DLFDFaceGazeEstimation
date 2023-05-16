@@ -43,7 +43,7 @@ def plot_results(fileid: str):
     loss_metric_labels = ["L1 loss", "Angular loss"]
 
     # Create four subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 6))
 
     # Add the data for the plots
     for i in range(4):

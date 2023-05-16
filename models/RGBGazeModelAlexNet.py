@@ -3,10 +3,10 @@ from models.GazeModel import GazeModel
 from utils.device import get_device
 
 
-class RGBGazeModel(GazeModel):
+class RGBGazeModelAlexNet(GazeModel):
     def __init__(self, device=get_device()):
         super().__init__(device)
-        self.name = "rgb-gaze-model.pt"
+        self.name = "RGBGazeModelAlexNet.pt"
 
         # Convolutional layers
         self.conv1 = nn.Sequential(
@@ -40,8 +40,8 @@ class RGBGazeModel(GazeModel):
         self.fc3 = nn.Sequential(
             nn.Linear(4096, 2))
 
+        # Configure the device
         self.device = device
-        self.to(device)
 
     def forward(self, image):
         image = image.to(self.device)

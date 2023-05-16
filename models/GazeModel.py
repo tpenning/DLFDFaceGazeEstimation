@@ -15,7 +15,9 @@ logger.setLevel(logging.INFO)
 class GazeModel(nn.Module):
     def __init__(self, device=get_device()):
         super().__init__()
-        self.name = "gaze-model.pt"
+        self.name = "GazeModel.pt"
+
+        # Configure the device
         self.device = device
         self.to(device)
 
@@ -81,6 +83,7 @@ class GazeModel(nn.Module):
 
     def learn(self, train_data, calibration_data, validation_data, train_epochs, calibration_epochs,
               learning_rate, fileid):
+        self.to(self.device)
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
         train_l1_losses, train_angular_losses, eval1_l1_losses, eval1_angular_losses = \

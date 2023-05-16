@@ -3,7 +3,8 @@ import argparse
 from torch.utils.data import DataLoader
 
 from datasets.RGBDataset import RGBDataset
-from models.RGBGazeModel import RGBGazeModel
+from models.RGBGazeModelAlexNet import RGBGazeModelAlexNet
+from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
 
 
 def main(args):
@@ -29,13 +30,20 @@ def main(args):
     )
 
     # Learning process
-    model = RGBGazeModel()
+    model = RGBGazeModelResNet18 if args.model == "resnet" else RGBGazeModelAlexNet()
     model.learn(train_data, calibration_data, validation_data, args.train_epochs, args.calibration_epochs,
                 args.learning_rate, str(args.fileid))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
+
+    parser.add_argument('-model',
+                        '--model',
+                        default="resnet",
+                        type=str,
+                        required=False,
+                        help="what model to run")
 
     parser.add_argument('-data_dir',
                         '--data_dir',
@@ -46,8 +54,9 @@ if __name__ == "__main__":
 
     parser.add_argument('-person_images',
                         '--person_images',
+                        default=3000,
                         type=int,
-                        required=True,
+                        required=False,
                         help="amount of images to use per person")
 
     parser.add_argument('-batch_size',
