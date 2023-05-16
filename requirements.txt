@@ -2,5 +2,5 @@ torch==2.0.0
 tqdm~=4.59.0
 numpy~=1.24.3
 torchvision~=0.15.0
-pillow~=8.2.0
+pillow~=9.4.0
 matplotlib~=3.3.4
