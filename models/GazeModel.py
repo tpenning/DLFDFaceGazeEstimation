@@ -5,7 +5,7 @@ import torch.optim as optim
 from tqdm import tqdm
 from utils.angles import convert_angle, angular_loss
 from utils.device import get_device
-from utils.results import save_results
+from results import save_results
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
@@ -79,7 +79,8 @@ class GazeModel(nn.Module):
 
         return learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses
 
-    def learn(self, train_data, calibration_data, validation_data, train_epochs, calibration_epochs, learning_rate):
+    def learn(self, train_data, calibration_data, validation_data, train_epochs, calibration_epochs,
+              learning_rate, fileid):
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
         train_l1_losses, train_angular_losses, eval1_l1_losses, eval1_angular_losses = \
@@ -87,5 +88,5 @@ class GazeModel(nn.Module):
         calibration_l1_losses, calibration_angular_losses, eval2_l1_losses, eval2_angular_losses = \
             self._learn_step(calibration_data, validation_data, calibration_epochs)
 
-        save_results(train_l1_losses, train_angular_losses, eval1_l1_losses, eval1_angular_losses,
-                     calibration_l1_losses, calibration_angular_losses, eval2_l1_losses, eval2_angular_losses)
+        save_results(fileid, train_l1_losses, train_angular_losses, calibration_l1_losses, calibration_angular_losses,
+                     eval1_l1_losses, eval1_angular_losses, eval2_l1_losses, eval2_angular_losses)
