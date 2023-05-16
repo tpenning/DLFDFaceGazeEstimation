@@ -1,12 +1,9 @@
-import math
 import argparse
 
 from torch.utils.data import DataLoader
 
 from datasets.RGBDataset import RGBDataset
 from models.RGBGazeModel import RGBGazeModel
-
-learning_rate = 0.0005
 
 
 def main(args):
@@ -19,14 +16,14 @@ def main(args):
 
     # Data for calibrating
     calibration_data = DataLoader(
-        RGBDataset(args.data_dir, ["p14"], 0, math.floor(args.calibration_size * args.person_images)),
+        RGBDataset(args.data_dir, ["p14"], 0, args.calibration_images),
         batch_size=args.batch_size,
         shuffle=True
     )
 
     # Data for validation
     validation_data = DataLoader(
-        RGBDataset(args.data_dir, ["p14"], math.floor(args.calibration_size * args.person_images), args.person_images),
+        RGBDataset(args.data_dir, ["p14"], args.calibration_images, args.person_images),
         batch_size=args.batch_size,
         shuffle=True
     )
@@ -60,9 +57,9 @@ if __name__ == "__main__":
                         required=False,
                         help="amount of images per batch")
 
-    parser.add_argument('-calibration_size',
-                        '--calibration_size',
-                        default=0.1,
+    parser.add_argument('-calibration_images',
+                        '--calibration_images',
+                        default=100,
                         type=int,
                         required=False,
                         help="part of the test data to be used for calibration")
