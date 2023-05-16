@@ -8,6 +8,7 @@ from models.RGBGazeModel import RGBGazeModel
 
 learning_rate = 0.0005
 
+
 def main(args):
     # Data for training
     train_data = DataLoader(
