@@ -23,9 +23,8 @@ def main(args):
     )
 
     # Learning process
-    model_id = f"Train{args.model_id}"
-    model = RGBGazeModelAlexNet(model_id) if args.model == "AlexNet" else RGBGazeModelResNet18(model_id)
-    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir, model_id)
+    model = RGBGazeModelAlexNet(args.model_id) if args.model == "AlexNet" else RGBGazeModelResNet18(args.model_id)
+    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir, False, args.model_id)
 
 
 if __name__ == "__main__":

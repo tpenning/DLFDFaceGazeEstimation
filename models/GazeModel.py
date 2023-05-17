@@ -78,7 +78,7 @@ class GazeModel(nn.Module):
         avg_angle_loss /= len(validation_data)
         return avg_l1_loss, avg_angle_loss
 
-    def learn(self, learn_data, validation_data, epochs, learning_rate, saves_dir, model_id):
+    def learn(self, learn_data, validation_data, epochs, learning_rate, saves_dir, full_run, model_id):
         # Set the device and the optimizer
         self.to(self.device)
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
@@ -96,4 +96,4 @@ class GazeModel(nn.Module):
 
         # Save the model and the losses
         torch.save(self.state_dict(), os.path.join(saves_dir, self.name))
-        save_results(model_id, learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses)
+        save_results(full_run, model_id, learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses)

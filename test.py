@@ -31,7 +31,7 @@ def main(args):
 
     # Learning process
     model.freeze_bn_layers()
-    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir, args.model_id)
+    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir, True, args.model_id)
 
 
 if __name__ == "__main__":

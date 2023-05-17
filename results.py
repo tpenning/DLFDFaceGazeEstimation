@@ -6,19 +6,18 @@ from typing import List
 import matplotlib.pyplot as plt
 
 
-def save_results(model_id: str, learn_l1_losses: List[float], learn_angular_losses: List[float],
+def save_results(full_run, model_id: str, learn_l1_losses: List[float], learn_angular_losses: List[float],
                  eval_l1_losses: List[float], eval_angular_losses: List[float]):
     # Get the losses in a list, when testing also get the training losses from file
-    if model_id.startswith("Train"):
-        losses = [learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses]
-    else:
-        train_id = re.split("(\D+)", model_id)[0]
-        train_losses = _load_results(f"Train{train_id}")
+    # And generate the filename with the given id
+    if full_run:
+        train_losses = _load_results(False, re.split("(\D+)", model_id)[0])
         losses = [train_losses[0], train_losses[1], learn_l1_losses, learn_angular_losses,
                   train_losses[2], train_losses[3], eval_l1_losses, eval_angular_losses]
-
-    # Generate the filename with the given id
-    filename = f"results/result{model_id}.txt"
+        filename = f"results/resultTest{model_id}.txt"
+    else:
+        losses = [learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses]
+        filename = f"results/resultTrain{model_id}.txt"
 
     # Write the results to the file
     with open(filename, "w") as file:
@@ -27,9 +26,12 @@ def save_results(model_id: str, learn_l1_losses: List[float], learn_angular_loss
             file.write(line + "\n")
 
 
-def _load_results(results_id: str):
+def _load_results(full_run: bool, result_id: str):
     # Load the file by id
-    filename = f"results/result{results_id}.txt"
+    prefix = "Test" if full_run else "Train"
+    print(prefix)
+    print(full_run)
+    filename = f"results/result{prefix}{result_id}.txt"
 
     # Read the data from the file
     loaded_data = []
@@ -37,15 +39,14 @@ def _load_results(results_id: str):
         for line in file:
             lst = [float(item) for item in line.strip().split()]
             loaded_data.append(lst)
+
     return loaded_data
 
 
-def plot_results(result_id: str):
-    # Check if this is just training data or training and calibration
-    full_plot = not result_id.startswith("Train")
-
+def plot_results(args):
+    full_plot = args.full_run == "full"
     # Load the results
-    results = _load_results(result_id)
+    results = _load_results(full_plot, args.result_id)
 
     # Plot titles and labels
     plot_titles = ["Training L1 Loss", "Training Angular Loss", "Calibration L1 Loss", "Calibration Angular Loss"]
@@ -77,6 +78,13 @@ def plot_results(result_id: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
 
+    parser.add_argument('-full_run',
+                        '--full_run',
+                        default="full",
+                        type=str,
+                        required=False,
+                        help="whether just the full run has to be plotted or not")
+
     parser.add_argument('-result_id',
                         '--result_id',
                         type=str,
@@ -84,4 +92,4 @@ if __name__ == "__main__":
                         help="id of the results")
 
     args = parser.parse_args()
-    plot_results(args.result_id)
+    plot_results(args)
