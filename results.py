@@ -1,28 +1,35 @@
 import math
 import argparse
+import re
 from typing import List
 
 import matplotlib.pyplot as plt
 
 
-def save_results(fileid: str, train_l1_losses: List[float], train_angular_losses: List[float],
-                 calibration_l1_losses: List[float], calibration_angular_losses: List[float],
-                 eval1_l1_losses: List[float], eval1_angular_losses: List[float],
-                 eval2_l1_losses: List[float], eval2_angular_losses: List[float]):
+def save_results(model_id: str, learn_l1_losses: List[float], learn_angular_losses: List[float],
+                 eval_l1_losses: List[float], eval_angular_losses: List[float]):
+    # Get the losses in a list, when testing also get the training losses from file
+    if model_id.startswith("Train"):
+        losses = [learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses]
+    else:
+        train_id = re.split("(\D+)", model_id)[0]
+        train_losses = _load_results(f"Train{train_id}")
+        losses = [train_losses[0], train_losses[1], learn_l1_losses, learn_angular_losses,
+                  train_losses[2], train_losses[3], eval_l1_losses, eval_angular_losses]
+
     # Generate the filename with the given id
-    filename = f"results/result{fileid}.txt"
+    filename = f"results/result{model_id}.txt"
 
     # Write the results to the file
     with open(filename, "w") as file:
-        for lst in [train_l1_losses, train_angular_losses, calibration_l1_losses, calibration_angular_losses,
-                    eval1_l1_losses, eval1_angular_losses, eval2_l1_losses, eval2_angular_losses]:
+        for lst in losses:
             line = " ".join(str(item) for item in lst)
             file.write(line + "\n")
 
 
-def _load_results(fileid: str):
+def _load_results(results_id: str):
     # Load the file by id
-    filename = f"results/result{fileid}.txt"
+    filename = f"results/result{results_id}.txt"
 
     # Read the data from the file
     loaded_data = []
@@ -33,9 +40,12 @@ def _load_results(fileid: str):
     return loaded_data
 
 
-def plot_results(fileid: str):
+def plot_results(results_id: str):
+    # Check if this is just training data or training and calibration
+    full_plot = not results_id.startswith("Train")
+
     # Load the results
-    results = _load_results(fileid)
+    results = _load_results(results_id)
 
     # Plot titles and labels
     plot_titles = ["Training L1 Loss", "Training Angular Loss", "Calibration L1 Loss", "Calibration Angular Loss"]
@@ -43,15 +53,17 @@ def plot_results(fileid: str):
     loss_metric_labels = ["L1 loss", "Angular loss"]
 
     # Create four subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 6))
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 6)) if full_plot else \
+        plt.subplots(nrows=1, ncols=2, figsize=(10, 3))
 
     # Add the data for the plots
-    for i in range(4):
+    plot_count = 4 if full_plot else 2
+    for i in range(plot_count):
         pi = format(i, '02b')
         plot = axs[int(pi[0]), int(pi[1])]
 
         plot.plot(results[i], "b-", label=line_labels[math.floor(i / 2)])
-        plot.plot(results[i+4], "orange", label="Val")
+        plot.plot(results[i + plot_count], "orange", label="Val")
         plot.set_title(plot_titles[i])
         plot.set_xlabel("Epoch")
         plot.set_ylabel(loss_metric_labels[i % 2])
@@ -65,11 +77,11 @@ def plot_results(fileid: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
 
-    parser.add_argument('-fileid',
-                        '--fileid',
-                        type=int,
+    parser.add_argument('-results_id',
+                        '--results_id',
+                        type=str,
                         required=True,
-                        help="id of the results file")
+                        help="id of the results")
 
     args = parser.parse_args()
-    plot_results(str(args.fileid))
+    plot_results(args.filename)

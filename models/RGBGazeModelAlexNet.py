@@ -4,9 +4,9 @@ from utils.device import get_device
 
 
 class RGBGazeModelAlexNet(GazeModel):
-    def __init__(self, device=get_device()):
-        super().__init__(device)
-        self.name = "RGBGazeModelAlexNet.pt"
+    def __init__(self, model_id, device=get_device()):
+        super().__init__(model_id, device)
+        self.name = f"RGBGazeModelAlexNet{model_id}.pt"
 
         # Convolutional layers
         self.conv1 = nn.Sequential(

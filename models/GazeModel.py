@@ -1,3 +1,4 @@
+import os
 import logging
 import torch
 import torch.nn as nn
@@ -13,17 +14,26 @@ logger.setLevel(logging.INFO)
 
 
 class GazeModel(nn.Module):
-    def __init__(self, device=get_device()):
+    def __init__(self, model_id, device=get_device()):
         super().__init__()
-        self.name = "GazeModel.pt"
+        self.name = f"GazeModel{model_id}.pt"
 
         # Configure the device
         self.device = device
         self.to(device)
 
+        # Optimizer and loss criteria
         self.optimizer = None
         self.l1_crit = nn.functional.l1_loss
         self.angular_crit = angular_loss
+
+    def freeze_bn_layers(self):
+        # Freeze all Batch Normalization (BN) layers
+        for module in self.modules():
+            if isinstance(module, nn.BatchNorm2d) or isinstance(module, nn.BatchNorm1d):
+                module.eval()
+                module.weight.requires_grad = False
+                module.bias.requires_grad = False
 
     def _train(self, train_data):
         self.train()
@@ -68,28 +78,22 @@ class GazeModel(nn.Module):
         avg_angle_loss /= len(validation_data)
         return avg_l1_loss, avg_angle_loss
 
-    def _learn_step(self, learn_data, eval_data, epochs):
+    def learn(self, learn_data, validation_data, epochs, learning_rate, filename):
+        # Set the device and the optimizer
+        self.to(self.device)
+        self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+
+        # Train and evaluate with the given datasets
         learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses = [], [], [], []
         for _ in tqdm(range(epochs)):
             learn_l1_loss, learn_angular_loss = self._train(learn_data)
-            eval_l1_loss, eval_angular_loss = self._eval(eval_data)
+            eval_l1_loss, eval_angular_loss = self._eval(validation_data)
 
             learn_l1_losses.append(learn_l1_loss)
             learn_angular_losses.append(learn_angular_loss)
             eval_l1_losses.append(eval_l1_loss)
             eval_angular_losses.append(eval_angular_loss)
 
-        return learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses
-
-    def learn(self, train_data, calibration_data, validation_data, train_epochs, calibration_epochs,
-              learning_rate, fileid):
-        self.to(self.device)
-        self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
-
-        train_l1_losses, train_angular_losses, eval1_l1_losses, eval1_angular_losses = \
-            self._learn_step(train_data, validation_data, train_epochs)
-        calibration_l1_losses, calibration_angular_losses, eval2_l1_losses, eval2_angular_losses = \
-            self._learn_step(calibration_data, validation_data, calibration_epochs)
-
-        save_results(fileid, train_l1_losses, train_angular_losses, calibration_l1_losses, calibration_angular_losses,
-                     eval1_l1_losses, eval1_angular_losses, eval2_l1_losses, eval2_angular_losses)
+        # Save the model and the losses
+        torch.save(self.state_dict(), os.path.join("saves", self.name))
+        save_results(filename, learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses)

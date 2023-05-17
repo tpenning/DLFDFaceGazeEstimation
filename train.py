@@ -15,24 +15,17 @@ def main(args):
         shuffle=True
     )
 
-    # Data for calibrating
-    calibration_data = DataLoader(
-        RGBDataset(args.data_dir, ["p14"], 0, args.calibration_images),
-        batch_size=args.batch_size,
-        shuffle=True
-    )
-
     # Data for validation
     validation_data = DataLoader(
         RGBDataset(args.data_dir, ["p14"], args.calibration_images, args.person_images),
         batch_size=args.batch_size,
-        shuffle=True
+        shuffle=False
     )
 
     # Learning process
-    model = RGBGazeModelResNet18() if args.model == "resnet" else RGBGazeModelAlexNet()
-    model.learn(train_data, calibration_data, validation_data, args.train_epochs, args.calibration_epochs,
-                args.learning_rate, str(args.fileid))
+    model_id = f"Train{args.model_id}"
+    model = RGBGazeModelAlexNet(model_id) if args.model == "AlexNet" else RGBGazeModelResNet18(model_id)
+    model.learn(train_data, validation_data, args.epochs, args.learning_rate, model_id)
 
 
 if __name__ == "__main__":
@@ -40,10 +33,10 @@ if __name__ == "__main__":
 
     parser.add_argument('-model',
                         '--model',
-                        default="resnet",
+                        default="ResNet18",
                         type=str,
                         required=False,
-                        help="what model to run")
+                        help="what type of model to run")
 
     parser.add_argument('-data_dir',
                         '--data_dir',
@@ -73,19 +66,12 @@ if __name__ == "__main__":
                         required=False,
                         help="part of the test data to be used for calibration")
 
-    parser.add_argument('-train_epochs',
-                        '--train_epochs',
+    parser.add_argument('-epochs',
+                        '--epochs',
                         default=20,
                         type=int,
                         required=False,
-                        help="number of epochs for training")
-
-    parser.add_argument('-calibration_epochs',
-                        '--calibration_epochs',
-                        default=100,
-                        type=int,
-                        required=False,
-                        help="number of epochs for calibration")
+                        help="number of epochs to train for")
 
     parser.add_argument('-learning_rate',
                         '--learning_rate',
@@ -94,11 +80,11 @@ if __name__ == "__main__":
                         required=False,
                         help="learning rate of the model")
 
-    parser.add_argument('-fileid',
-                        '--fileid',
-                        type=int,
+    parser.add_argument('-model_id',
+                        '--model_id',
+                        type=str,
                         required=True,
-                        help="id for the results file")
+                        help="id of the model")
 
     args = parser.parse_args()
     main(args)
