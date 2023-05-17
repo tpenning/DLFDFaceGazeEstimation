@@ -40,12 +40,12 @@ def _load_results(results_id: str):
     return loaded_data
 
 
-def plot_results(results_id: str):
+def plot_results(result_id: str):
     # Check if this is just training data or training and calibration
-    full_plot = not results_id.startswith("Train")
+    full_plot = not result_id.startswith("Train")
 
     # Load the results
-    results = _load_results(results_id)
+    results = _load_results(result_id)
 
     # Plot titles and labels
     plot_titles = ["Training L1 Loss", "Training Angular Loss", "Calibration L1 Loss", "Calibration Angular Loss"]
@@ -60,7 +60,7 @@ def plot_results(results_id: str):
     plot_count = 4 if full_plot else 2
     for i in range(plot_count):
         pi = format(i, '02b')
-        plot = axs[int(pi[0]), int(pi[1])]
+        plot = axs[int(pi[0]), int(pi[1])] if full_plot else axs[int(pi[1])]
 
         plot.plot(results[i], "b-", label=line_labels[math.floor(i / 2)])
         plot.plot(results[i + plot_count], "orange", label="Val")
@@ -77,11 +77,11 @@ def plot_results(results_id: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
 
-    parser.add_argument('-results_id',
-                        '--results_id',
+    parser.add_argument('-result_id',
+                        '--result_id',
                         type=str,
                         required=True,
                         help="id of the results")
 
     args = parser.parse_args()
-    plot_results(args.filename)
+    plot_results(args.result_id)

@@ -30,24 +30,12 @@ def main(args):
     model.load_state_dict(torch.load(model_path))
 
     # Learning process
-    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir, args.filename)
+    model.freeze_bn_layers()
+    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir, args.model_id)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
-
-    parser.add_argument('-model',
-                        '--model',
-                        type=str,
-                        required=True,
-                        help="the type of model with id")
-
-    parser.add_argument('-data_dir',
-                        '--data_dir',
-                        default="data",
-                        type=str,
-                        required=False,
-                        help="path to the data directory")
 
     parser.add_argument('-person_images',
                         '--person_images',
@@ -56,19 +44,19 @@ if __name__ == "__main__":
                         required=False,
                         help="amount of images to use per person")
 
-    parser.add_argument('-batch_size',
-                        '--batch_size',
-                        default=64,
-                        type=int,
-                        required=False,
-                        help="amount of images per batch")
-
     parser.add_argument('-calibration_images',
                         '--calibration_images',
                         default=100,
                         type=int,
                         required=False,
                         help="part of the test data to be used for calibration")
+
+    parser.add_argument('-batch_size',
+                        '--batch_size',
+                        default=64,
+                        type=int,
+                        required=False,
+                        help="amount of images per batch")
 
     parser.add_argument('-epochs',
                         '--epochs',
@@ -84,12 +72,25 @@ if __name__ == "__main__":
                         required=False,
                         help="learning rate of the model")
 
+    parser.add_argument('-data_dir',
+                        '--data_dir',
+                        default="data",
+                        type=str,
+                        required=False,
+                        help="path to the data directory")
+
     parser.add_argument('-saves_dir',
                         '--saves_dir',
                         default="models/saves",
                         type=str,
                         required=False,
                         help="path to the model saves directory")
+
+    parser.add_argument('-model',
+                        '--model',
+                        type=str,
+                        required=True,
+                        help="the type of model with id")
 
     parser.add_argument('-model_id',
                         '--model_id',
