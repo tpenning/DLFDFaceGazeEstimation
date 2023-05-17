@@ -25,7 +25,7 @@ def main(args):
     # Learning process
     model_id = f"Train{args.model_id}"
     model = RGBGazeModelAlexNet(model_id) if args.model == "AlexNet" else RGBGazeModelResNet18(model_id)
-    model.learn(train_data, validation_data, args.epochs, args.learning_rate, model_id)
+    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir, model_id)
 
 
 if __name__ == "__main__":
@@ -79,6 +79,13 @@ if __name__ == "__main__":
                         type=float,
                         required=False,
                         help="learning rate of the model")
+
+    parser.add_argument('-saves_dir',
+                        '--saves_dir',
+                        default="models/saves",
+                        type=str,
+                        required=False,
+                        help="path to the model saves directory")
 
     parser.add_argument('-model_id',
                         '--model_id',

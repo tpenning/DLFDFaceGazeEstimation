@@ -30,7 +30,7 @@ def main(args):
     model.load_state_dict(torch.load(model_path))
 
     # Learning process
-    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.filename)
+    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir, args.filename)
 
 
 if __name__ == "__main__":
@@ -83,6 +83,13 @@ if __name__ == "__main__":
                         type=float,
                         required=False,
                         help="learning rate of the model")
+
+    parser.add_argument('-saves_dir',
+                        '--saves_dir',
+                        default="models/saves",
+                        type=str,
+                        required=False,
+                        help="path to the model saves directory")
 
     parser.add_argument('-model_id',
                         '--model_id',
