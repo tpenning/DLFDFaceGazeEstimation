@@ -7,31 +7,36 @@ from datasets.RGBDataset import RGBDataset
 from models.RGBGazeModelAlexNet import RGBGazeModelAlexNet
 from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
 
+batch_size = 64
+data_dir = "data"
+saves_dir = "models/saves"
+
 
 def main(args):
     # Data for calibration
     train_data = DataLoader(
-        RGBDataset(args.data_dir, ["p14"], 0, args.calibration_images),
+        RGBDataset(args.data_dir, [f"p{args.testid}"], 0, args.calibration_images),
         batch_size=args.batch_size,
         shuffle=True
     )
 
     # Data for validation
     validation_data = DataLoader(
-        RGBDataset(args.data_dir, ["p14"], args.calibration_images, args.person_images),
+        RGBDataset(args.data_dir, [f"p{args.testid}"], args.calibration_images, args.person_images),
         batch_size=args.batch_size,
         shuffle=False
     )
 
     # Load the given model
-    model_path = f"models/saves/RGBGazeModel{args.model}.pt"
-    model = RGBGazeModelAlexNet(args.model_id) if args.model.startswith("AlexNet") else \
-        RGBGazeModelResNet18(args.model_id)
+    model_path = f"models/saves/RGBGazeModel{args.model}_{args.test_id}.pt"
+    model = RGBGazeModelAlexNet(args.model_id, args.test_id) if args.model.startswith("AlexNet") else \
+        RGBGazeModelResNet18(args.model_id, args.test_id)
     model.load_state_dict(torch.load(model_path))
 
     # Learning process
     model.freeze_bn_layers()
-    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir, True, args.model_id)
+    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir,
+                True, args.model_id, args.test_id)
 
 
 if __name__ == "__main__":
@@ -51,13 +56,6 @@ if __name__ == "__main__":
                         required=False,
                         help="part of the test data to be used for calibration")
 
-    parser.add_argument('-batch_size',
-                        '--batch_size',
-                        default=64,
-                        type=int,
-                        required=False,
-                        help="amount of images per batch")
-
     parser.add_argument('-epochs',
                         '--epochs',
                         default=100,
@@ -72,20 +70,6 @@ if __name__ == "__main__":
                         required=False,
                         help="learning rate of the model")
 
-    parser.add_argument('-data_dir',
-                        '--data_dir',
-                        default="data",
-                        type=str,
-                        required=False,
-                        help="path to the data directory")
-
-    parser.add_argument('-saves_dir',
-                        '--saves_dir',
-                        default="models/saves",
-                        type=str,
-                        required=False,
-                        help="path to the model saves directory")
-
     parser.add_argument('-model',
                         '--model',
                         type=str,
@@ -97,6 +81,13 @@ if __name__ == "__main__":
                         type=str,
                         required=True,
                         help="id of the model")
+
+    parser.add_argument('-test_id',
+                        '--test_id',
+                        default=14,
+                        type=int,
+                        required=False,
+                        help="id of the subject used for testing")
 
     args = parser.parse_args()
     main(args)
