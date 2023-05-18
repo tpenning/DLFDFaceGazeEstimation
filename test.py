@@ -15,14 +15,14 @@ saves_dir = "models/saves"
 def main(args):
     # Data for calibration
     train_data = DataLoader(
-        RGBDataset(args.data_dir, [f"p{args.testid}"], 0, args.calibration_images),
+        RGBDataset(args.data_dir, [f"p{args.test_id}"], 0, args.calibration_images),
         batch_size=args.batch_size,
         shuffle=True
     )
 
     # Data for validation
     validation_data = DataLoader(
-        RGBDataset(args.data_dir, [f"p{args.testid}"], args.calibration_images, args.person_images),
+        RGBDataset(args.data_dir, [f"p{args.test_id}"], args.calibration_images, args.person_images),
         batch_size=args.batch_size,
         shuffle=False
     )

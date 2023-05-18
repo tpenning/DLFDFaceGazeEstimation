@@ -14,14 +14,14 @@ saves_dir = "models/saves"
 def main(args):
     # Data for training
     train_data = DataLoader(
-        RGBDataset(data_dir, [f"p{pid:02}" for pid in range(00, 15) if pid != args.testid], 0, args.person_images),
+        RGBDataset(data_dir, [f"p{pid:02}" for pid in range(00, 15) if pid != args.test_id], 0, args.person_images),
         batch_size=batch_size,
         shuffle=True
     )
 
     # Data for validation
     validation_data = DataLoader(
-        RGBDataset(data_dir, [f"p{args.testid}"], 0, args.person_images),
+        RGBDataset(data_dir, [f"p{args.test_id}"], 0, args.person_images),
         batch_size=batch_size,
         shuffle=False
     )
