@@ -13,30 +13,33 @@ saves_dir = "models/saves"
 
 
 def main(args):
+    # Fix the test_id
+    test_id = str(args.test_id).zfill(2)
+
     # Data for calibration
     train_data = DataLoader(
-        RGBDataset(data_dir, [f"p{args.test_id}"], 0, args.calibration_images),
+        RGBDataset(data_dir, [f"p{test_id}"], 0, args.calibration_images),
         batch_size=batch_size,
         shuffle=True
     )
 
     # Data for validation
     validation_data = DataLoader(
-        RGBDataset(data_dir, [f"p{args.test_id}"], args.calibration_images, args.person_images),
+        RGBDataset(data_dir, [f"p{test_id}"], args.calibration_images, args.person_images),
         batch_size=batch_size,
         shuffle=False
     )
 
     # Load the given model
-    model_path = f"models/saves/RGBGazeModel{args.model}_{args.test_id}.pt"
-    model = RGBGazeModelAlexNet("Test", args.model_id, args.test_id) if args.model.startswith("AlexNet") else \
-        RGBGazeModelResNet18("Test", args.model_id, args.test_id)
+    model_path = f"models/saves/RGBGazeModel{args.model}_{test_id}.pt"
+    model = RGBGazeModelAlexNet("Test", args.model_id, test_id) if args.model.startswith("AlexNet") else \
+        RGBGazeModelResNet18("Test", args.model_id, test_id)
     model.load_state_dict(torch.load(model_path))
 
     # Learning process
     model.freeze_bn_layers()
     model.learn(train_data, validation_data, args.epochs, args.learning_rate, saves_dir,
-                True, args.model_id, args.test_id)
+                True, args.model_id, test_id)
 
 
 if __name__ == "__main__":
