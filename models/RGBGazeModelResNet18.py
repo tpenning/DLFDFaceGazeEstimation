@@ -5,9 +5,9 @@ from utils.device import get_device
 
 
 class RGBGazeModelResNet18(GazeModel):
-    def __init__(self, model_id, test_id, device=get_device()):
-        super().__init__(model_id, device)
-        self.name = f"RGBGazeModelResNet18{model_id}_{test_id}.pt"
+    def __init__(self, model_type, model_id, test_id, device=get_device()):
+        super().__init__(model_type, model_id, device)
+        self.name = f"RGBGazeModelResNet18{model_type}{model_id}_{test_id}.pt"
 
         # Get the resnet model
         self.resnet = models.resnet18()

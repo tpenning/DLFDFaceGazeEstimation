@@ -14,9 +14,9 @@ logger.setLevel(logging.INFO)
 
 
 class GazeModel(nn.Module):
-    def __init__(self, model_id, test_id, device=get_device()):
+    def __init__(self, model_type, model_id, test_id, device=get_device()):
         super().__init__()
-        self.name = f"GazeModel{model_id}_{test_id}.pt"
+        self.name = f"GazeModel{model_type}{model_id}_{test_id}.pt"
 
         # Configure the device
         self.device = device

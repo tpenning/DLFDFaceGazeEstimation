@@ -29,8 +29,8 @@ def main(args):
 
     # Load the given model
     model_path = f"models/saves/RGBGazeModel{args.model}_{args.test_id}.pt"
-    model = RGBGazeModelAlexNet(args.model_id, args.test_id) if args.model.startswith("AlexNet") else \
-        RGBGazeModelResNet18(args.model_id, args.test_id)
+    model = RGBGazeModelAlexNet("Test", args.model_id, args.test_id) if args.model.startswith("AlexNet") else \
+        RGBGazeModelResNet18("Test", args.model_id, args.test_id)
     model.load_state_dict(torch.load(model_path))
 
     # Learning process

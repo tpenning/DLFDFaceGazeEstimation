@@ -30,8 +30,8 @@ def main(args):
     )
 
     # Learning process
-    model = RGBGazeModelAlexNet(args.model_id, test_id) if args.model == "AlexNet" else \
-        RGBGazeModelResNet18(args.model_id, test_id)
+    model = RGBGazeModelAlexNet("Train", args.model_id, test_id) if args.model == "AlexNet" else \
+        RGBGazeModelResNet18("Train", args.model_id, test_id)
     model.learn(train_data, validation_data, args.epochs, args.learning_rate, saves_dir,
                 False, args.model_id, test_id)
 
