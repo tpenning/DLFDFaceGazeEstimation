@@ -15,15 +15,15 @@ saves_dir = "models/saves"
 def main(args):
     # Data for calibration
     train_data = DataLoader(
-        RGBDataset(args.data_dir, [f"p{args.test_id}"], 0, args.calibration_images),
-        batch_size=args.batch_size,
+        RGBDataset(data_dir, [f"p{args.test_id}"], 0, args.calibration_images),
+        batch_size=batch_size,
         shuffle=True
     )
 
     # Data for validation
     validation_data = DataLoader(
-        RGBDataset(args.data_dir, [f"p{args.test_id}"], args.calibration_images, args.person_images),
-        batch_size=args.batch_size,
+        RGBDataset(data_dir, [f"p{args.test_id}"], args.calibration_images, args.person_images),
+        batch_size=batch_size,
         shuffle=False
     )
 
@@ -35,7 +35,7 @@ def main(args):
 
     # Learning process
     model.freeze_bn_layers()
-    model.learn(train_data, validation_data, args.epochs, args.learning_rate, args.saves_dir,
+    model.learn(train_data, validation_data, args.epochs, args.learning_rate, saves_dir,
                 True, args.model_id, args.test_id)
 
 
