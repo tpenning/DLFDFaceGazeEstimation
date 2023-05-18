@@ -11,7 +11,7 @@ def save_results(full_run, model_id: str, test_id: str, learn_l1_losses: List[fl
     # Get the losses in a list, when testing also get the training losses from file
     # And generate the filename with the given id
     if full_run:
-        train_losses = _load_results(False, re.split("(\D+)", model_id, test_id)[0])
+        train_losses = _load_results(False, re.split("(\D+)", model_id)[0], test_id)
         losses = [train_losses[0], train_losses[1], learn_l1_losses, learn_angular_losses,
                   train_losses[2], train_losses[3], eval_l1_losses, eval_angular_losses]
         prefix = "Test"
