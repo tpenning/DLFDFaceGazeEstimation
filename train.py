@@ -12,25 +12,28 @@ saves_dir = "models/saves"
 
 
 def main(args):
+    # Fix the test_id
+    test_id = str(args.test_id).zfill(2)
+
     # Data for training
     train_data = DataLoader(
-        RGBDataset(data_dir, [f"p{pid:02}" for pid in range(00, 15) if pid != args.test_id], 0, args.person_images),
+        RGBDataset(data_dir, [f"p{pid:02}" for pid in range(00, 15) if pid != test_id], 0, args.person_images),
         batch_size=batch_size,
         shuffle=True
     )
 
     # Data for validation
     validation_data = DataLoader(
-        RGBDataset(data_dir, [f"p{args.test_id}"], 0, args.person_images),
+        RGBDataset(data_dir, [f"p{test_id}"], 0, args.person_images),
         batch_size=batch_size,
         shuffle=False
     )
 
     # Learning process
-    model = RGBGazeModelAlexNet(args.model_id, args.test_id) if args.model == "AlexNet" else \
-        RGBGazeModelResNet18(args.model_id, args.test_id)
+    model = RGBGazeModelAlexNet(args.model_id, test_id) if args.model == "AlexNet" else \
+        RGBGazeModelResNet18(args.model_id, test_id)
     model.learn(train_data, validation_data, args.epochs, args.learning_rate, saves_dir,
-                False, args.model_id, args.test_id)
+                False, args.model_id, test_id)
 
 
 if __name__ == "__main__":
