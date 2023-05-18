@@ -29,8 +29,6 @@ def save_results(full_run, model_id: str, learn_l1_losses: List[float], learn_an
 def _load_results(full_run: bool, result_id: str):
     # Load the file by id
     prefix = "Test" if full_run else "Train"
-    print(prefix)
-    print(full_run)
     filename = f"results/result{prefix}{result_id}.txt"
 
     # Read the data from the file
@@ -44,7 +42,9 @@ def _load_results(full_run: bool, result_id: str):
 
 
 def plot_results(args):
+    # Defines if only training or a full plot has to be loaded and plotted
     full_plot = args.full_run == "full"
+
     # Load the results
     results = _load_results(full_plot, args.result_id)
 
