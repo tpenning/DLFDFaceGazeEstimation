@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     parser.add_argument('-learning_rate',
                         '--learning_rate',
-                        default=0.00001,
+                        default=0.0001,
                         type=float,
                         required=False,
                         help="learning rate of the model")
