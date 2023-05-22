@@ -7,7 +7,7 @@ from models.RGBGazeModelAlexNet import RGBGazeModelAlexNet
 from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
 
 batch_size = 64
-data_dir = "data"
+data_dir = "data/old_data"
 saves_dir = "models/saves"
 
 

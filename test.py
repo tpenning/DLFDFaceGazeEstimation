@@ -6,9 +6,10 @@ from torch.utils.data import DataLoader
 from datasets.RGBDataset import RGBDataset
 from models.RGBGazeModelAlexNet import RGBGazeModelAlexNet
 from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
+from utils.data_help import split_data
 
 batch_size = 64
-data_dir = "data"
+data_dir = "data/old_data"
 saves_dir = "models/saves"
 
 
@@ -16,16 +17,20 @@ def main(args):
     # Fix the test_id
     test_id = str(args.test_id).zfill(2)
 
+    # Split the dataset
+    data = RGBDataset(data_dir, [f"p{test_id}"], args.calibration_images, args.person_images)
+    calibration_set, validation_set = split_data(data, args.calibration_size)
+
     # Data for calibration
-    train_data = DataLoader(
-        RGBDataset(data_dir, [f"p{test_id}"], 0, args.calibration_images),
+    calibration_data = DataLoader(
+        calibration_set,
         batch_size=batch_size,
         shuffle=True
     )
 
     # Data for validation
     validation_data = DataLoader(
-        RGBDataset(data_dir, [f"p{test_id}"], args.calibration_images, args.person_images),
+        validation_set,
         batch_size=batch_size,
         shuffle=False
     )
@@ -38,7 +43,7 @@ def main(args):
 
     # Learning process
     model.freeze_bn_layers()
-    model.learn(train_data, validation_data, args.epochs, args.learning_rate, saves_dir,
+    model.learn(calibration_data, validation_data, args.epochs, args.learning_rate, saves_dir,
                 True, args.model_id, test_id)
 
 
@@ -52,10 +57,10 @@ if __name__ == "__main__":
                         required=False,
                         help="amount of images to use per person")
 
-    parser.add_argument('-calibration_images',
-                        '--calibration_images',
-                        default=100,
-                        type=int,
+    parser.add_argument('-calibration_size',
+                        '--calibration_size',
+                        default=0.0333,
+                        type=float,
                         required=False,
                         help="part of the test data to be used for calibration")
 
