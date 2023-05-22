@@ -46,8 +46,9 @@ def plot_results(args):
     # Defines if only training or a full plot has to be loaded and plotted
     full_plot = args.full_run == "full"
 
-    # Load the results
-    results = _load_results(full_plot, args.result_id, args.test_id)
+    # Fix the test_id and load the results
+    test_id = str(args.test_id).zfill(2)
+    results = _load_results(full_plot, args.result_id, test_id)
 
     # Plot titles and labels
     plot_titles = ["Training L1 Loss", "Training Angular Loss", "Calibration L1 Loss", "Calibration Angular Loss"]
