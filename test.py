@@ -18,7 +18,7 @@ def main(args):
     test_id = str(args.test_id).zfill(2)
 
     # Split the dataset
-    data = RGBDataset(data_dir, [f"p{test_id}"], args.calibration_images, args.person_images)
+    data = RGBDataset(data_dir, [f"p{test_id}"], 0, args.person_images)
     calibration_set, validation_set = split_data(data, args.calibration_size)
 
     # Data for calibration
