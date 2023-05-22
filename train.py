@@ -81,4 +81,4 @@ if __name__ == "__main__":
                         help="id of the subject used for testing")
 
     args = parser.parse_args()
-    # main(args)
+    main(args)
