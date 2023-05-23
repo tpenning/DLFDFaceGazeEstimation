@@ -9,7 +9,7 @@ from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
 from utils.data_help import split_data
 
 batch_size = 64
-data_dir = "data/old_data"
+data_dir = "data"
 saves_dir = "models/saves"
 
 
