@@ -34,10 +34,6 @@ class RGBGazeModelAlexNet(GazeModel):
             nn.ReLU(),
             nn.Dropout(0.5))
         self.fc2 = nn.Sequential(
-            nn.Linear(4096, 4096),
-            nn.ReLU(),
-            nn.Dropout(0.5))
-        self.fc3 = nn.Sequential(
             nn.Linear(4096, 2))
 
         # Configure the device
@@ -57,5 +53,4 @@ class RGBGazeModelAlexNet(GazeModel):
         image = image.reshape(image.size(0), -1)
         image = self.fc1(image)
         image = self.fc2(image)
-        image = self.fc3(image)
         return image
