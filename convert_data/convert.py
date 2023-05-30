@@ -79,3 +79,7 @@ if __name__ == "__main__":
 
     # Show the reversed image
     show_image(reversed_image)
+
+    print(image.shape)
+    print(transformed_image.shape)
+    print(reversed_image.shape)

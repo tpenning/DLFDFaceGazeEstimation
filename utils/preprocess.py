@@ -2,6 +2,7 @@ import h5py
 from pathlib import Path
 from tqdm import tqdm
 import numpy as np
+from PIL import Image
 
 
 def preprocess(pid: str, dataset_dir: Path, output_dir: Path) -> None:
@@ -11,10 +12,20 @@ def preprocess(pid: str, dataset_dir: Path, output_dir: Path) -> None:
         gazes = labels[:, :2]
     images = images.transpose(0, 2, 3, 1).astype(np.uint8)
 
+    # Resize images from (448, 448) to (224, 224)
+    resized_images = []
+    for img in images:
+        pil_image = Image.fromarray(img)
+        resized_image = pil_image.resize((224, 224))
+        resized_images.append(np.array(resized_image))
+    resized_images = np.array(resized_images)
+
+    # Make the directory to store the subject data in
     person_output_dir = output_dir / pid
     person_output_dir.mkdir(parents=True, exist_ok=True)
 
-    np.save(str(person_output_dir / 'images.npy'), images)
+    # Store the subject data
+    np.save(str(person_output_dir / 'images.npy'), resized_images)
     np.save(str(person_output_dir / 'gazes.npy'), gazes)
 
 
