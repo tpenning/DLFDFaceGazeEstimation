@@ -3,9 +3,7 @@ from typing import List
 
 import numpy as np
 import torch
-from PIL import Image
 from torch.utils.data import Dataset
-from torchvision import transforms
 from tqdm import tqdm
 
 from convert_data.convert import transform_image
