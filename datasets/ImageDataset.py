@@ -6,13 +6,15 @@ import torch
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
+from convert_data.convert import dct_transform
 
-class Dataset224(Dataset):
-    def __init__(self, fd: bool, data_dir: str, pids: List[str], start: int, end: int):
+
+class ImageDataset(Dataset):
+    def __init__(self, data_type: str, data_dir: str, pids: List[str], start: int, end: int):
         super().__init__()
         self.data = []
         self.labels = []
-        self.fd = fd
+        self.data_type = data_type
 
         for pid in tqdm(pids):
             self.add(data_dir, pid, start, end)
@@ -32,9 +34,12 @@ class Dataset224(Dataset):
     def add(self, data_dir: str, pid: str, start: int, end: int):
         images, gazes = self._load_data(data_dir, pid, start, end)
 
-        # if self.fd:
-            # transformed_images = [fd_all_channels(img) for img in images]
-            # images = np.stack(transformed_images, axis=0)
+        if self.data_type == "FD":
+            transformed_images = [dct_transform(img) for img in images]
+            images = np.stack(transformed_images, axis=0)
+        elif self.data_type == "FDAll":
+            transformed_images = [dct_transform(img) for img in images]
+            images = np.stack(transformed_images, axis=0)
 
         # Transpose to images to (batch_size, channels, height, width) and convert the data to tensors
         images = images.transpose((0, 3, 1, 2))

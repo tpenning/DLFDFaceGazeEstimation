@@ -2,6 +2,12 @@ import argparse
 import re
 
 from configs.RunConfig import RunConfig
+from models.FDAllGazeModelAlexNet import FDAllGazeModelAlexNet
+from models.FDAllGazeModelResNet18 import FDAllGazeModelResNet18
+from models.FDGazeModelAlexNet import FDGazeModelAlexNet
+from models.FDGazeModelResNet18 import FDGazeModelResNet18
+from models.RGBGazeModelAlexNet import RGBGazeModelAlexNet
+from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
 from train import train
 from test import calibrate
 
@@ -42,8 +48,26 @@ if __name__ == "__main__":
     # Create a RunConfig instance to access all the parameters in the run files
     config = RunConfig(args)
 
+    # Create the correct type of model to run on
+    model_name = f"{config.model}{config.data_type}{config.model_id}.pt"
+    if config.data_type == "FD":
+        if config.model == "AlexNet":
+            model = FDGazeModelAlexNet(model_name)
+        else:
+            model = FDGazeModelResNet18(model_name)
+    elif config.data_type == "FDAll":
+        if config.model == "AlexNet":
+            model = FDAllGazeModelAlexNet(model_name)
+        else:
+            model = FDAllGazeModelResNet18(model_name)
+    else:
+        if config.model == "AlexNet":
+            model = RGBGazeModelAlexNet(model_name)
+        else:
+            model = RGBGazeModelResNet18(model_name)
+
     # Run train or calibrate based on the model id
     if re.search('[a-zA-Z]', args.model_id) is None:
-        train(config)
+        train(config, model)
     else:
-        calibrate(config)
+        calibrate(config, model)
