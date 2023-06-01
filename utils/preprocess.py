@@ -2,7 +2,7 @@ import h5py
 from pathlib import Path
 from tqdm import tqdm
 import numpy as np
-from PIL import Image
+import cv2
 
 
 def preprocess(pid: str, dataset_dir: Path, output_dir: Path) -> None:
@@ -15,9 +15,8 @@ def preprocess(pid: str, dataset_dir: Path, output_dir: Path) -> None:
     # Resize images from (448, 448) to (224, 224)
     resized_images = []
     for img in images:
-        pil_image = Image.fromarray(img)
-        resized_image = pil_image.resize((224, 224))
-        resized_images.append(np.array(resized_image))
+        resized_image = cv2.resize(img, (224, 224))
+        resized_images.append(resized_image)
     resized_images = np.array(resized_images)
 
     # Make the directory to store the subject data in
