@@ -1,15 +1,15 @@
 import argparse
 import re
 
-from configs.RunConfig import RunConfig
+from setups.RunConfig import RunConfig
 from models.FDAllGazeModelAlexNet import FDAllGazeModelAlexNet
 from models.FDAllGazeModelResNet18 import FDAllGazeModelResNet18
 from models.FDGazeModelAlexNet import FDGazeModelAlexNet
 from models.FDGazeModelResNet18 import FDGazeModelResNet18
 from models.RGBGazeModelAlexNet import RGBGazeModelAlexNet
 from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
-from train import train
-from test import calibrate
+from setups.train import train
+from setups.test import calibrate
 
 
 if __name__ == "__main__":

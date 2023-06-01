@@ -11,6 +11,8 @@ class FDAllGazeModelResNet18(GazeModel):
 
         # Get the resnet model
         self.resnet = models.resnet18()
+        # Change the first convolutional layer to accept (28, 28, 192) input
+        self.resnet.conv1 = nn.Conv2d(192, 64, kernel_size=7, stride=2, padding=3, bias=False)
         # Change the output to 2 values
         self.resnet.fc = nn.Linear(512, 2)
 
