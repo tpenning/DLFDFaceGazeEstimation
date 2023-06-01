@@ -4,7 +4,7 @@ import re
 from torch.utils.data import DataLoader
 
 from datasets.ImageDataset import ImageDataset
-from utils.data_help import split_data
+from utils.dataHelp import split_data
 
 
 def calibrate(config, model):
