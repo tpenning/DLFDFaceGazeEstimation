@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from convertData.selectChannels import select_all
+from converting.select_channels import select_all
 
 
 class ImageDataset(Dataset):

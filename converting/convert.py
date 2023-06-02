@@ -70,47 +70,65 @@ def inverse_dct_transform(dct_cubes):
     return rgb_image
 
 
-def test_dct_transform(image_file_path):
-    # Load an image and get some basic versions of it
-    rgb_image = np.load(image_file_path)[0]
-    bgr_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
-    ycrcb_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2YCrCb)
-
-    # Apply the transform (DCT)
-    dct_cubes = dct_transform(rgb_image)
+def test_dct_transform(image):
+    # Get the DCT transformed image
+    dct_cubes = dct_transform(image)
 
     # Reconstruct the original image from the transformed coefficients
     reconstructed_image = inverse_dct_transform(dct_cubes)
 
-    # Create the first plot for the original and reconstructed image
+    # Plot the original to reconstructed image and the ycbcr channels
+    plot_original_reconstructed(image, reconstructed_image)
+    plot_ycbcr(cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb))
+
+
+def plot_original_reconstructed(original_image, reconstructed_image):
+    # Define the plot
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-    axes[0].imshow(bgr_image)
+
+    # Add the original image
+    axes[0].imshow(cv2.cvtColor(original_image, cv2.COLOR_RGB2BGR))
     axes[0].set_title('Original Image')
     axes[0].axis('off')
+
+    # Add the reconstructed image
     axes[1].imshow(reconstructed_image)
     axes[1].set_title('Reconstructed Image')
     axes[1].axis('off')
+
+    # Adjust the plot spacing and plot it
     plt.tight_layout()
     plt.show()
 
-    # Create the second plot for the Y, Cb and Cr channels
+
+def plot_ycbcr(ycrcb_image):
+    # Define the plot
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+    # Add the Y channel
     axes[0].imshow(ycrcb_image[:, :, 0], cmap='gray')
     axes[0].set_title('Y Channel')
     axes[0].axis('off')
+
+    # Add the Cb channel
     axes[1].imshow(ycrcb_image[:, :, 2], cmap='RdYlBu')
     axes[1].set_title('Cb Channel')
     axes[1].axis('off')
+
+    # Add the Cr channel
     axes[2].imshow(ycrcb_image[:, :, 1], cmap='RdYlBu')
     axes[2].set_title('Cr Channel')
     axes[2].axis('off')
+
+    # Adjust the plot spacing and plot it
     plt.tight_layout()
     plt.show()
 
 
 if __name__ == "__main__":
-    # Specify the file path to the image .npy file
+    # Specify the file path to the image .npy file and retrieve the image
     image_file_path = "../data/p00/images.npy"
+    image = np.load(image_file_path)[0]
 
     # Test the DCT transform for a single image
-    test_dct_transform(image_file_path)
+    test_dct_transform(image)

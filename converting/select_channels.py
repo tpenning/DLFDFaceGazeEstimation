@@ -1,6 +1,6 @@
 import numpy as np
 
-from convertData.convert import dct_transform
+from converting.convert import dct_transform
 
 
 def select_all(image):
