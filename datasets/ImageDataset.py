@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from converting.select_channels import select_all
+from converting.select_channels import select_channels
 
 
 class ImageDataset(Dataset):
@@ -34,11 +34,9 @@ class ImageDataset(Dataset):
     def add(self, data_dir: str, pid: str, start: int, end: int):
         images, gazes = self._load_data(data_dir, pid, start, end)
 
-        if self.data_type == "FD":
-            transformed_images = [select_all(img) for img in images]
-            images = np.stack(transformed_images, axis=0)
-        elif self.data_type == "FDAll":
-            transformed_images = [select_all(img) for img in images]
+        if self.data_type != "RGB":
+            images = np.array(images)
+            transformed_images = [select_channels(img, self.data_type) for img in images]
             images = np.stack(transformed_images, axis=0)
 
         # Transpose to images to (batch_size, channels, height, width) and convert the data to tensors

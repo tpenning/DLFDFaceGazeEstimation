@@ -20,15 +20,15 @@ def select_channels(dct_cubes, channel_indices):
 
 def analyze_dct_transform_single_selection(image):
     # The channels to select
-    y_remove = [0]
-    cb_remove = [0]
-    cr_remove = [0]
+    y_select = [0]
+    cb_select = [0]
+    cr_select = [0]
 
     # Get the DCT transformed image
     dct_cubes = dct_transform(image)
 
     # Get the DCT transformed image with only the specified channels selected
-    dct_cubes_selected = select_channels(dct_cubes, [y_remove, cb_remove, cr_remove])
+    dct_cubes_selected = select_channels(dct_cubes, [y_select, cb_select, cr_select])
 
     # Reconstruct the image with the channel selected dct cubes
     reconstructed_image = inverse_dct_transform(dct_cubes_selected)
