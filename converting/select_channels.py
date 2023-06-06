@@ -3,6 +3,9 @@ import numpy as np
 from converting.convert import dct_transform
 
 
+# TODO: add selection method that accepts the data type argument and handles that in this file to simplify the dataset code
+
+
 def select_all(image):
     # Get the dct cubes from the image
     dct_cubes = dct_transform(image)

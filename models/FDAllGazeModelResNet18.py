@@ -9,10 +9,22 @@ class FDAllGazeModelResNet18(GazeModel):
         super().__init__(device)
         self.name = model_name
 
-        # Get the resnet model
-        self.resnet = models.resnet18()
-        # Change the first convolutional layer to accept (28, 28, 192) input
-        self.resnet.conv1 = nn.Conv2d(192, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        # Additional layers to reduce the numbers of channels input to the ResNet18 layers
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(192, 64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2))
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2))
+
+        # Get the ResNet18 model
+        self.resnet = models.resnet18(pretrained=False)
+
+        # Change the input channels of the first convolutional layer
+        self.resnet.conv1 = nn.Conv2d(64, 64, kernel_size=7, stride=2, padding=3, bias=False)
+
         # Change the output to 2 values
         self.resnet.fc = nn.Linear(512, 2)
 
@@ -22,7 +34,11 @@ class FDAllGazeModelResNet18(GazeModel):
     def forward(self, image):
         image = image.to(self.device)
 
-        # Run the image through the network
+        # Additional layers
+        image = self.conv1(image)
+        image = self.conv2(image)
+
+        # Run the image through the ResNet18 layers
         image = self.resnet(image)
 
         return image

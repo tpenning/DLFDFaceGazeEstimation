@@ -1,6 +1,6 @@
 class RunConfig:
     def __init__(self, args):
-        self.batch_size = 64
+        self.batch_size = 32
         self.train_epochs = 20
         self.calibration_epochs = 100
         self.learning_rate = 0.0001
