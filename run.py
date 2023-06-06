@@ -12,6 +12,21 @@ from setups.train import train
 from setups.test import calibrate
 
 
+def get_input_channels(data_type: str):
+    if data_type == "FD1CS":
+        return 3
+    elif data_type == "FD2CS":
+        return 9
+    elif data_type == "FD3CS":
+        return 12
+    elif data_type == "FD4CS":
+        return 22
+    elif data_type == "FD5CS":
+        return 20
+    elif data_type == "FD6CS":
+        return 35
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
 
@@ -61,11 +76,13 @@ if __name__ == "__main__":
         else:
             model = FDAllGazeModelResNet18(model_name)
     else:
-        input_channels = int(re.search(r'\d+', config.data_type).group())
+        # Get the number of input channels
+        input_channels = get_input_channels(config.data_type)
+
         if config.model == "AlexNet":
             model = FDCSGazeModelAlexNet(model_name, input_channels)
         else:
-            model = FDCSGazeModelResNet18(model_name)
+            model = FDCSGazeModelResNet18(model_name, input_channels)
 
     # Run train or calibrate based on the model id
     if re.search('[a-zA-Z]', args.model_id) is None:
