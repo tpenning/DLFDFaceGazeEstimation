@@ -20,9 +20,9 @@ def select_channels(dct_cubes, channel_indices):
 
 def analyze_dct_transform_single_selection(image):
     # The channels to select
-    y_remove = [0, 1, 8]
-    cb_remove = [0, 1, 8]
-    cr_remove = [0, 1, 8]
+    y_remove = [0]
+    cb_remove = [0]
+    cr_remove = [0]
 
     # Get the DCT transformed image
     dct_cubes = dct_transform(image)
@@ -37,11 +37,11 @@ def analyze_dct_transform_single_selection(image):
     plot_original_reconstructed(image, reconstructed_image)
 
 
-def generate_channel_plots(image):
+def generate_channel_plots(image, pid):
     # Get the DCT transformed image
     dct_cubes = dct_transform(image)
 
-    # Define the different channel selections, and set the size for the plots
+    # Define the different channel selections and set the size for the plots
     channel_selections = [
         [([i], [], []) for i in range(64)],  # First channel selected per index
         [([], [i], []) for i in range(64)],  # Second channel selected per index
@@ -64,30 +64,38 @@ def generate_channel_plots(image):
             # Get the DCT transformed image with the specified channels selected
             dct_cubes_selected = select_channels(dct_cubes, selection)
 
-            # Reconstruct the image with the channel selected dct cubes
+            # Reconstruct the image with the channel-selected DCT cubes
             reconstructed_image = inverse_dct_transform(dct_cubes_selected)
 
             # Plot the reconstructed image
             ax.imshow(reconstructed_image)
 
-        # Add a title to the plot
-        title = f"Plot {plot_index + 1}"
-        plt.suptitle(title)
+            # Optional, line that adds the frequency index to each image to show the layout of the channels
+            # ax.text(0.5, 0.5, str(subplot_index + 1), fontsize=8, color='white', horizontalalignment='center',
+            #         verticalalignment='center')
+
+        # Optional, add titles to the plots
+        # titles = [f"{pid} Y frequency channels", f"{pid} Cb frequency channels", f"{pid} Cr frequency channels",
+        #           f"{pid} Combined frequency channels"]
+        # plt.suptitle(titles[plot_index], fontsize=20)
 
         # Adjust the spacing between subplots
-        plt.tight_layout()
+        plt.subplots_adjust(wspace=0.02, hspace=0.02)
 
     # Show the plots
     plt.show()
 
 
 if __name__ == "__main__":
-    # Specify the file path to the image .npy file and retrieve the image
-    image_file_path = "../data/p00/images.npy"
-    image = np.load(image_file_path)[0]
+    # Change the person ids that you want to analyze
+    # for pid in tqdm([f"p{pid:02}" for pid in range(00, 14)]):
+    for pid in tqdm(["p00"]):
+        # Specify the file path to the image .npy file and retrieve the image
+        image_file_path = f"../data/{pid}/images.npy"
+        image = np.load(image_file_path)[0]
 
-    # Analyze the reconstructed image with the removed channels
-    # analyze_dct_transform_single_selection(image)
+        # Analyze the reconstructed image with the removed channels
+        # analyze_dct_transform_single_selection(image)
 
-    # Generate the channel plots
-    generate_channel_plots(image)
+        # Generate the channel plots
+        generate_channel_plots(image, pid)
