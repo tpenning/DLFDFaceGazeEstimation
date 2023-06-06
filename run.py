@@ -4,8 +4,8 @@ import re
 from setups.RunConfig import RunConfig
 from models.FDAllGazeModelAlexNet import FDAllGazeModelAlexNet
 from models.FDAllGazeModelResNet18 import FDAllGazeModelResNet18
-from models.FDGazeModelAlexNet import FDGazeModelAlexNet
-from models.FDGazeModelResNet18 import FDGazeModelResNet18
+from models.FDCSGazeModelAlexNet import FDCSGazeModelAlexNet
+from models.FDCSGazeModelResNet18 import FDCSGazeModelResNet18
 from models.RGBGazeModelAlexNet import RGBGazeModelAlexNet
 from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
 from setups.train import train
@@ -50,21 +50,22 @@ if __name__ == "__main__":
 
     # Create the correct type of model to run on
     model_name = f"{config.model}{config.data_type}{config.model_id}.pt"
-    if config.data_type == "FD":
+    if config.data_type == "RGB":
         if config.model == "AlexNet":
-            model = FDGazeModelAlexNet(model_name)
+            model = RGBGazeModelAlexNet(model_name)
         else:
-            model = FDGazeModelResNet18(model_name)
+            model = RGBGazeModelResNet18(model_name)
     elif config.data_type == "FDAll":
         if config.model == "AlexNet":
             model = FDAllGazeModelAlexNet(model_name)
         else:
             model = FDAllGazeModelResNet18(model_name)
     else:
+        input_channels = int(re.search(r'\d+', config.data_type).group())
         if config.model == "AlexNet":
-            model = RGBGazeModelAlexNet(model_name)
+            model = FDCSGazeModelAlexNet(model_name, input_channels)
         else:
-            model = RGBGazeModelResNet18(model_name)
+            model = FDCSGazeModelResNet18(model_name)
 
     # Run train or calibrate based on the model id
     if re.search('[a-zA-Z]', args.model_id) is None:
