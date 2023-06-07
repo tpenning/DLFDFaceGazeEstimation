@@ -14,7 +14,7 @@ class FDCSGazeModelResNet18(GazeModel):
         self.resnet = models.resnet18(pretrained=False)
 
         # Change the input channels of the first convolutional layer
-        self.resnet.conv1 = nn.Conv2d(self.input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.resnet.conv1 = nn.Conv2d(self.input_channels, 64, kernel_size=2, stride=2, padding=3, bias=False)
 
         # Change the output to 2 values
         self.resnet.fc = nn.Linear(512, 2)

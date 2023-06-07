@@ -11,8 +11,7 @@ class FDCSGazeModelAlexNet(GazeModel):
 
         # Convolutional layers
         self.conv1 = nn.Sequential(
-            # The convolutional layer stride is reduced due to the small data size
-            nn.Conv2d(in_channels=self.input_channels, out_channels=96, kernel_size=11, stride=2, padding=2),
+            nn.Conv2d(in_channels=self.input_channels, out_channels=96, kernel_size=3, stride=2, padding=2),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=3, stride=2))
         self.conv2 = nn.Sequential(
@@ -32,7 +31,7 @@ class FDCSGazeModelAlexNet(GazeModel):
 
         # Fully connected layers
         self.fc1 = nn.Sequential(
-            nn.Linear(1024, 4096),
+            nn.Linear(2304, 4096),
             nn.ReLU(),
             nn.Dropout(0.5))
         self.fc2 = nn.Sequential(

@@ -4,6 +4,7 @@ class RunConfig:
         self.train_epochs = 20
         self.calibration_epochs = 100
         self.learning_rate = 0.0001
+        self.training_size = 0.9
         self.calibration_size = 0.0333
         self.data_dir = "data"
         self.saves_dir = "models/saves"
