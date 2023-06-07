@@ -20,7 +20,7 @@ class FDAllGazeModelResNet18(GazeModel):
             nn.MaxPool2d(kernel_size=2, stride=2))
 
         # Get the ResNet18 model
-        self.resnet = models.resnet18(pretrained=False)
+        self.resnet = models.resnet18()
 
         # Change the input channels of the first convolutional layer in ResNet18
         self.resnet.conv1 = nn.Conv2d(96, 64, kernel_size=2, stride=2, padding=3, bias=False)

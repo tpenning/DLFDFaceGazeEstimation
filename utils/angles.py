@@ -15,6 +15,7 @@ def convert_angle(py: torch.Tensor) -> torch.Tensor:
 
 def angular_loss(v1: torch.Tensor, v2: torch.Tensor) -> torch.Tensor:
     cos_angles = torch.sum(v1 * v2, dim=1)
+    cos_angles = torch.clamp(cos_angles, -1, 1)
     angles = torch.acos(cos_angles) * 180.0 / torch.tensor(math.pi)
     avg_angle = torch.mean(angles)
     return avg_angle

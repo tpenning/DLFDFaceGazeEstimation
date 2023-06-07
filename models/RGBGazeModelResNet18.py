@@ -10,7 +10,7 @@ class RGBGazeModelResNet18(GazeModel):
         self.name = model_name
 
         # Get the resnet model
-        self.resnet = models.resnet18(pretrained=False)
+        self.resnet = models.resnet18()
         # Change the output to 2 values
         self.resnet.fc = nn.Linear(512, 2)
 

@@ -82,6 +82,7 @@ class GazeModel(nn.Module):
         # Set the device and the optimizer
         self.to(self.device)
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+        optimal_loss = None
 
         # Train and evaluate with the given datasets
         learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses = [], [], [], []
@@ -94,6 +95,10 @@ class GazeModel(nn.Module):
             eval_l1_losses.append(eval_l1_loss)
             eval_angular_losses.append(eval_angular_loss)
 
-        # Save the model and the losses
-        torch.save(self.state_dict(), os.path.join(saves_dir, self.name))
+            # Save the model when the new best evaluation loss is reached
+            if optimal_loss is None or optimal_loss >= eval_angular_loss:
+                optimal_loss = eval_angular_loss
+                torch.save(self.state_dict(), os.path.join(saves_dir, self.name))
+
+        # Save the losses
         save_results(full_run, model_id, learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses)
