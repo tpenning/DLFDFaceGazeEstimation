@@ -20,9 +20,9 @@ def get_input_channels(data_type: str):
     elif data_type == "FD3CS":
         return 12
     elif data_type == "FD4CS":
-        return 22
-    elif data_type == "FD5CS":
         return 20
+    elif data_type == "FD5CS":
+        return 22
     elif data_type == "FD6CS":
         return 35
 

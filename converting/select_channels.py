@@ -31,12 +31,12 @@ def get_channel_indices(model: str):
         cr = np.array([0, 1, 8])
     elif model == "FD4CS":
         y = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
-        cb = np.array([0, 1, 2, 8, 9, 16])
-        cr = np.array([0, 1, 2, 8, 9, 16])
-    elif model == "FD5CS":
-        y = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
         cb = np.array([0, 1, 3, 8, 24])
         cr = np.array([0, 1, 3, 8, 24])
+    elif model == "FD5CS":
+        y = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
+        cb = np.array([0, 1, 2, 8, 9, 16])
+        cr = np.array([0, 1, 2, 8, 9, 16])
     elif model == "FD6CS":
         y = np.array([0, 1, 2, 3, 4, 8, 9, 10, 11, 16, 17, 18, 24, 25, 32])
         cb = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
