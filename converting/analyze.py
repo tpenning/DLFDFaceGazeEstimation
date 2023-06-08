@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-from convert import dct_transform, inverse_dct_transform, plot_original_reconstructed
+from convert import dct_transform, inverse_dct_to_ycbcr, ycbcr_to_rgb, plot_original_reconstructed
 
 
 def select_channels(dct_cubes, channel_indices):
@@ -30,8 +30,9 @@ def analyze_dct_transform_single_selection(image):
     # Get the DCT transformed image with only the specified channels selected
     dct_cubes_selected = select_channels(dct_cubes, [y_select, cb_select, cr_select])
 
-    # Reconstruct the image with the channel selected dct cubes
-    reconstructed_image = inverse_dct_transform(dct_cubes_selected)
+    # Reconstruct the image with the channel-selected DCT cubes
+    y, cb, cr = inverse_dct_to_ycbcr(dct_cubes_selected)
+    reconstructed_image = ycbcr_to_rgb(y, cb, cr)
 
     # Plot for the original and reconstructed image
     plot_original_reconstructed(image, reconstructed_image)
@@ -41,46 +42,49 @@ def generate_channel_plots(image, pid):
     # Get the DCT transformed image
     dct_cubes = dct_transform(image)
 
-    # Define the different channel selections and set the size for the plots
-    channel_selections = [
-        [([i], [], []) for i in range(64)],  # First channel selected per index
-        [([], [i], []) for i in range(64)],  # Second channel selected per index
-        [([], [], [i]) for i in range(64)],  # Third channel selected per index
-        [([i], [i], [i]) for i in range(64)]  # All channels selected per index
-    ]
+    # Set plot values in variables
+    # RdYlBu and viridis can both be used for the chroma channels
+    titles = [f"{pid} Y frequency channels", f"{pid} Cb frequency channels", f"{pid} Cr frequency channels",
+              f"{pid} Combined frequency channels"]
+    color_schemes = ["gray", "viridis", "viridis", None]
     size = 8
 
-    # Generate four plots
-    for plot_index, selection_list in tqdm(enumerate(channel_selections)):
-        # Create a new figure for each plot
-        plt.figure(plot_index + 1, figsize=(size, size))
+    # Define the 4 plots for the Y, Cb, Cr and "combined" frequency channels
+    for i in range(4):
+        plt.figure(i, figsize=(size, size))
 
-        # Create subplots for each channel selection
-        for subplot_index, selection in enumerate(selection_list):
-            # Create a subplot for the current channel selection
-            ax = plt.subplot(size, size, subplot_index + 1)
+    # For each frequency channel index retrieve the channels information and add them to the plots
+    for i in tqdm(range(64)):
+        # Get the DCT transformed image for the current frequency index
+        dct_cubes_selected = select_channels(dct_cubes, ([i], [i], [i]))
+
+        # Reconstruct the image with the channel-selected DCT cubes
+        # Retrieve the YCbCr components and the full image, then add all to a list
+        y, cb, cr = inverse_dct_to_ycbcr(dct_cubes_selected)
+        reconstructed_image = ycbcr_to_rgb(y, cb, cr)
+        results = [y, cb, cr, reconstructed_image]
+
+        for j in range(4):
+            # Change the activate figure and create a subplot for the current image to display
+            plt.figure(j)
+            ax = plt.subplot(size, size, i + 1)
             ax.axis('off')
 
-            # Get the DCT transformed image with the specified channels selected
-            dct_cubes_selected = select_channels(dct_cubes, selection)
-
-            # Reconstruct the image with the channel-selected DCT cubes
-            reconstructed_image = inverse_dct_transform(dct_cubes_selected)
-
-            # Plot the reconstructed image
-            ax.imshow(reconstructed_image)
+            # Plot the image with the correct color scheme
+            ax.imshow(results[j], cmap=color_schemes[j])
 
             # Optional, line that adds the frequency index to each image to show the layout of the channels
-            # ax.text(0.5, 0.5, str(subplot_index + 1), fontsize=8, color='white', horizontalalignment='center',
+            # ax.text(0.5, 0.5, str(i + 1), fontsize=8, color='white', horizontalalignment='center',
             #         verticalalignment='center')
 
-        # Optional, add titles to the plots
-        # titles = [f"{pid} Y frequency channels", f"{pid} Cb frequency channels", f"{pid} Cr frequency channels",
-        #           f"{pid} Combined frequency channels"]
-        # plt.suptitle(titles[plot_index], fontsize=20)
-
-        # Adjust the spacing between subplots
+    # Adjust the spacing between subplots for each figure
+    for i in range(4):
+        # Change the activate figure and set the spacing
+        plt.figure(i)
         plt.subplots_adjust(wspace=0.02, hspace=0.02)
+
+        # Optional, add titles to the plots
+        # plt.suptitle(titles[i], fontsize=20)
 
     # Show the plots
     plt.show()

@@ -36,7 +36,7 @@ def dct_transform(image):
     return dct_cubes
 
 
-def inverse_dct_transform(dct_cubes):
+def inverse_dct_to_ycbcr(dct_cubes):
     # Split the channels of the DCT transformed image
     y_dct_cube, cb_dct_cube, cr_dct_cube = np.split(dct_cubes, 3, axis=-1)
 
@@ -61,12 +61,16 @@ def inverse_dct_transform(dct_cubes):
     cb = cb.astype(np.uint8)
     cr = cr.astype(np.uint8)
 
+    # Return the Y, Cb and Cr components
+    return y, cb, cr
+
+
+def ycbcr_to_rgb(y, cb, cr):
     # Merge the channels into a single YCrCb image, watch the orders
     ycrcb_image = cv2.merge([y, cr, cb])
 
-    # Convert the YCrCb image to BGR color space, watch the orders
+    # Convert the YCrCb image to BGR color space and return it, watch the orders
     rgb_image = cv2.cvtColor(ycrcb_image, cv2.COLOR_YCrCb2BGR)
-
     return rgb_image
 
 
@@ -75,7 +79,8 @@ def test_dct_transform(image):
     dct_cubes = dct_transform(image)
 
     # Reconstruct the original image from the transformed coefficients
-    reconstructed_image = inverse_dct_transform(dct_cubes)
+    y, cb, cr = inverse_dct_to_ycbcr(dct_cubes)
+    reconstructed_image = ycbcr_to_rgb(y, cb, cr)
 
     # Plot the original to reconstructed image and the ycbcr channels
     plot_original_reconstructed(image, reconstructed_image)
@@ -88,13 +93,13 @@ def plot_original_reconstructed(original_image, reconstructed_image):
 
     # Add the original image
     axes[0].imshow(cv2.cvtColor(original_image, cv2.COLOR_RGB2BGR))
-    axes[0].set_title('Original Image')
-    axes[0].axis('off')
+    axes[0].set_title("Original Image")
+    axes[0].axis("off")
 
     # Add the reconstructed image
     axes[1].imshow(reconstructed_image)
-    axes[1].set_title('Reconstructed Image')
-    axes[1].axis('off')
+    axes[1].set_title("Reconstructed Image")
+    axes[1].axis("off")
 
     # Adjust the plot spacing and plot it
     plt.tight_layout()
@@ -106,19 +111,19 @@ def plot_ycbcr(ycrcb_image):
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
     # Add the Y channel
-    axes[0].imshow(ycrcb_image[:, :, 0], cmap='gray')
-    axes[0].set_title('Y Channel')
-    axes[0].axis('off')
+    axes[0].imshow(ycrcb_image[:, :, 0], cmap="gray")
+    axes[0].set_title("Y Channel")
+    axes[0].axis("off")
 
     # Add the Cb channel
-    axes[1].imshow(ycrcb_image[:, :, 2], cmap='RdYlBu')
-    axes[1].set_title('Cb Channel')
-    axes[1].axis('off')
+    axes[1].imshow(ycrcb_image[:, :, 2], cmap="RdYlBu")
+    axes[1].set_title("Cb Channel")
+    axes[1].axis("off")
 
     # Add the Cr channel
-    axes[2].imshow(ycrcb_image[:, :, 1], cmap='RdYlBu')
-    axes[2].set_title('Cr Channel')
-    axes[2].axis('off')
+    axes[2].imshow(ycrcb_image[:, :, 1], cmap="RdYlBu")
+    axes[2].set_title("Cr Channel")
+    axes[2].axis("off")
 
     # Adjust the plot spacing and plot it
     plt.tight_layout()
