@@ -4,7 +4,7 @@ from models.GazeModel import GazeModel
 from utils.device import get_device
 
 
-class RGBGazeModelResNet18(GazeModel):
+class ColorGazeModelResNet18(GazeModel):
     def __init__(self, model_name: str, device=get_device()):
         super().__init__(device)
         self.name = model_name

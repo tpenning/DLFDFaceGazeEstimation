@@ -6,25 +6,10 @@ from models.FDAllGazeModelAlexNet import FDAllGazeModelAlexNet
 from models.FDAllGazeModelResNet18 import FDAllGazeModelResNet18
 from models.FDCSGazeModelAlexNet import FDCSGazeModelAlexNet
 from models.FDCSGazeModelResNet18 import FDCSGazeModelResNet18
-from models.RGBGazeModelAlexNet import RGBGazeModelAlexNet
-from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
+from models.ColorGazeModelAlexNet import ColorGazeModelAlexNet
+from models.ColorGazeModelResNet18 import ColorGazeModelResNet18
 from setups.train import train
 from setups.test import calibrate
-
-
-def get_input_channels(data_type: str):
-    if data_type == "FD1CS":
-        return 3
-    elif data_type == "FD2CS":
-        return 9
-    elif data_type == "FD3CS":
-        return 12
-    elif data_type == "FD4CS":
-        return 20
-    elif data_type == "FD5CS":
-        return 22
-    elif data_type == "FD6CS":
-        return 35
 
 
 if __name__ == "__main__":
@@ -65,19 +50,23 @@ if __name__ == "__main__":
 
     # Create the correct type of model to run on
     model_name = f"{config.model}{config.data_type}{config.model_id}.pt"
-    if config.data_type == "RGB":
+    if config.data_type == "RGB" or config.data_type == "YCbCr":
         if config.model == "AlexNet":
-            model = RGBGazeModelAlexNet(model_name)
+            model = ColorGazeModelAlexNet(model_name)
         else:
-            model = RGBGazeModelResNet18(model_name)
-    elif config.data_type == "FDAll":
+            model = ColorGazeModelResNet18(model_name)
+    # TODO: changed this method (from config.data_type == "FDAll")
+    elif bool(re.search(r'A', config.data_type, re.IGNORECASE)):
+        # Get the number of input channels
+        input_channels = config.channel_selections[int(re.search(r'\d+', config.data_type).group()) - 1]
+
         if config.model == "AlexNet":
-            model = FDAllGazeModelAlexNet(model_name)
+            model = FDAllGazeModelAlexNet(model_name, input_channels)
         else:
-            model = FDAllGazeModelResNet18(model_name)
+            model = FDAllGazeModelResNet18(model_name, input_channels)
     else:
         # Get the number of input channels
-        input_channels = get_input_channels(config.data_type)
+        input_channels = config.channel_selections[int(re.search(r'\d+', config.data_type).group()) - 1]
 
         if config.model == "AlexNet":
             model = FDCSGazeModelAlexNet(model_name, input_channels)

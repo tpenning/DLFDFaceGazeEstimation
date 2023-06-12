@@ -4,13 +4,15 @@ from utils.device import get_device
 
 
 class FDAllGazeModelAlexNet(GazeModel):
-    def __init__(self, model_name: str, device=get_device()):
+    def __init__(self, model_name: str, input_channels: int, device=get_device()):
+        # TODO: changed this class (from no input_channels)
         super().__init__(device)
         self.name = model_name
+        self.input_channels = input_channels
 
         # Convolutional layers
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels=192, out_channels=256, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_channels=self.input_channels, out_channels=256, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
         self.conv2 = nn.Sequential(

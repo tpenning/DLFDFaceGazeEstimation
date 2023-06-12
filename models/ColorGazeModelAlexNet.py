@@ -3,7 +3,7 @@ from models.GazeModel import GazeModel
 from utils.device import get_device
 
 
-class RGBGazeModelAlexNet(GazeModel):
+class ColorGazeModelAlexNet(GazeModel):
     def __init__(self, model_name: str, device=get_device()):
         super().__init__(device)
         self.name = model_name

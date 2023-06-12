@@ -9,25 +9,25 @@ class FDCSGazeModelAlexNet(GazeModel):
         self.name = model_name
         self.input_channels = input_channels
 
-        # Convolutional layers
+        # Convolutional layers changed to adapt to the small data size
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels=self.input_channels, out_channels=96, kernel_size=3, stride=2, padding=2),
+            nn.Conv2d(in_channels=self.input_channels, out_channels=96, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3, stride=2))
+            nn.MaxPool2d(kernel_size=2, stride=2))
         self.conv2 = nn.Sequential(
-            nn.Conv2d(in_channels=96, out_channels=256, kernel_size=5, stride=1, padding=2),
+            nn.Conv2d(in_channels=96, out_channels=256, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3, stride=2))
+            nn.MaxPool2d(kernel_size=2, stride=2))
         self.conv3 = nn.Sequential(
             nn.Conv2d(in_channels=256, out_channels=384, kernel_size=3, stride=1, padding=1),
             nn.ReLU())
         self.conv4 = nn.Sequential(
             nn.Conv2d(in_channels=384, out_channels=384, kernel_size=3, stride=1, padding=1),
             nn.ReLU())
-        # The max pooling layer is removed due to the small data size
         self.conv5 = nn.Sequential(
             nn.Conv2d(in_channels=384, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.ReLU())
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2))
 
         # Fully connected layers
         self.fc1 = nn.Sequential(
@@ -39,6 +39,8 @@ class FDCSGazeModelAlexNet(GazeModel):
 
         # Configure the device
         self.device = device
+
+
 
     def forward(self, image):
         image = image.to(self.device)
