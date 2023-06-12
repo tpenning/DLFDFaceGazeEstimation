@@ -108,21 +108,21 @@ def plot_original_reconstructed(original_image, reconstructed_image):
 
 def plot_ycbcr(ycrcb_image):
     # Define the plot
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    fig, axes = plt.subplots(1, 3, figsize=(15, 6))
 
     # Add the Y channel
     axes[0].imshow(ycrcb_image[:, :, 0], cmap="gray")
-    axes[0].set_title("Y Channel")
+    axes[0].set_title("Y Channel", fontsize=28)
     axes[0].axis("off")
 
     # Add the Cb channel
-    axes[1].imshow(ycrcb_image[:, :, 2], cmap="RdYlBu")
-    axes[1].set_title("Cb Channel")
+    axes[1].imshow(ycrcb_image[:, :, 2], cmap="viridis")
+    axes[1].set_title("Cb Channel", fontsize=28)
     axes[1].axis("off")
 
     # Add the Cr channel
-    axes[2].imshow(ycrcb_image[:, :, 1], cmap="RdYlBu")
-    axes[2].set_title("Cr Channel")
+    axes[2].imshow(ycrcb_image[:, :, 1], cmap="viridis")
+    axes[2].set_title("Cr Channel", fontsize=28)
     axes[2].axis("off")
 
     # Adjust the plot spacing and plot it

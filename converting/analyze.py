@@ -43,7 +43,7 @@ def generate_channel_plots(image, pid):
     dct_cubes = dct_transform(image)
 
     # Set plot values in variables
-    # RdYlBu and viridis can both be used for the chroma channels
+    # Various options can be used for the chroma channel mapping: "viridis", "RdYlBu", "bwr", "RdGy", "PuOr" and more
     titles = [f"{pid} Y frequency channels", f"{pid} Cb frequency channels", f"{pid} Cr frequency channels",
               f"{pid} Combined frequency channels"]
     color_schemes = ["gray", "viridis", "viridis", None]
@@ -93,7 +93,7 @@ def generate_channel_plots(image, pid):
 if __name__ == "__main__":
     # Change the person ids that you want to analyze
     # for pid in tqdm([f"p{pid:02}" for pid in range(00, 14)]):
-    for pid in tqdm(["p00"]):
+    for pid in tqdm(["p14"]):
         # Specify the file path to the image .npy file and retrieve the image
         image_file_path = f"../data/{pid}/images.npy"
         image = np.load(image_file_path)[0]
