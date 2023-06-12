@@ -18,7 +18,11 @@ def select_channels(image, model: str):
 def get_channel_indices(model: str):
     # TODO: changed this method (from just FDxCS)
     # Decide on what channels to select based on the model
-    if model == "FD1CS" or model == "FD1All":
+    if model == "FD0CS" or model == "FD0All":
+        y = np.arange(64)
+        cb = np.arange(64)
+        cr = np.arange(64)
+    elif model == "FD1CS" or model == "FD1All":
         y = np.array([0])
         cb = np.array([0])
         cr = np.array([0])
@@ -38,14 +42,10 @@ def get_channel_indices(model: str):
         y = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
         cb = np.array([0, 1, 2, 8, 9, 16])
         cr = np.array([0, 1, 2, 8, 9, 16])
-    elif model == "FD6CS" or model == "FD6All":
+    else:
         y = np.array([0, 1, 2, 3, 4, 8, 9, 10, 11, 16, 17, 18, 24, 25, 32])
         cb = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
         cr = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
-    else:
-        y = np.arange(64)
-        cb = np.arange(64)
-        cr = np.arange(64)
 
     # Concatenate the channel indices to select and adjust them to fit
     channels_to_select = np.concatenate([y, cb + 64, cr + 128])
