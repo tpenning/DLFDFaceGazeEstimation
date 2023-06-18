@@ -4,7 +4,7 @@ from models.GazeModel import GazeModel
 from utils.device import get_device
 
 
-class FDAllGazeModelResNet18(GazeModel):
+class FDHCGazeModelResNet18(GazeModel):
     def __init__(self, model_name: str, input_channels: int, device=get_device()):
         # TODO: changed this class (from no input_channels, lower kernel size and additional layers)
         super().__init__(device)

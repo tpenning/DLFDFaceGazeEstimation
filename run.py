@@ -2,10 +2,10 @@ import argparse
 import re
 
 from setups.RunConfig import RunConfig
-from models.FDAllGazeModelAlexNet import FDAllGazeModelAlexNet
-from models.FDAllGazeModelResNet18 import FDAllGazeModelResNet18
-from models.FDCSGazeModelAlexNet import FDCSGazeModelAlexNet
-from models.FDCSGazeModelResNet18 import FDCSGazeModelResNet18
+from models.FDHCGazeModelAlexNet import FDHCGazeModelAlexNet
+from models.FDHCGazeModelResNet18 import FDHCGazeModelResNet18
+from models.FDLCGazeModelAlexNet import FDLCGazeModelAlexNet
+from models.FDLCGazeModelResNet18 import FDLCGazeModelResNet18
 from models.ColorGazeModelAlexNet import ColorGazeModelAlexNet
 from models.ColorGazeModelResNet18 import ColorGazeModelResNet18
 from setups.calibrate import calibrate
@@ -31,17 +31,17 @@ def main(config):
             input_channels = config.channel_selections[int(re.search(r'\d+', config.data_type).group())]
 
             if config.model == "AlexNet":
-                model = FDAllGazeModelAlexNet(model_name, input_channels)
+                model = FDHCGazeModelAlexNet(model_name, input_channels)
             else:
-                model = FDAllGazeModelResNet18(model_name, input_channels)
+                model = FDHCGazeModelResNet18(model_name, input_channels)
         else:
             # Get the number of input channels
             input_channels = config.channel_selections[int(re.search(r'\d+', config.data_type).group())]
 
             if config.model == "AlexNet":
-                model = FDCSGazeModelAlexNet(model_name, input_channels)
+                model = FDLCGazeModelAlexNet(model_name, input_channels)
             else:
-                model = FDCSGazeModelResNet18(model_name, input_channels)
+                model = FDLCGazeModelResNet18(model_name, input_channels)
 
         # Run train or calibrate based on the model id
         if re.search('[a-zA-Z]', args.model_id) is None:

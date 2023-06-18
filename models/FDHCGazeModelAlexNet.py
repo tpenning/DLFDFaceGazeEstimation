@@ -3,7 +3,7 @@ from models.GazeModel import GazeModel
 from utils.device import get_device
 
 
-class FDAllGazeModelAlexNet(GazeModel):
+class FDHCGazeModelAlexNet(GazeModel):
     def __init__(self, model_name: str, input_channels: int, device=get_device()):
         # TODO: changed this class (from no input_channels)
         super().__init__(device)

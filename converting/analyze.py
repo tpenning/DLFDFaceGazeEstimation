@@ -74,8 +74,7 @@ def generate_channel_plots(image, pid):
             ax.imshow(results[j], cmap=color_schemes[j])
 
             # Optional, line that adds the frequency index to each image to show the layout of the channels
-            # ax.text(0.5, 0.5, str(i + 1), fontsize=8, color='white', horizontalalignment='center',
-            #         verticalalignment='center')
+            ax.text(0.5, 0.5, str(i), fontsize=20, color='white', ha='center', va='center', transform=ax.transAxes)
 
     # Adjust the spacing between subplots for each figure
     for i in range(4):
@@ -93,7 +92,7 @@ def generate_channel_plots(image, pid):
 if __name__ == "__main__":
     # Change the person ids that you want to analyze
     # for pid in tqdm([f"p{pid:02}" for pid in range(00, 14)]):
-    for pid in tqdm(["p14"]):
+    for pid in tqdm(["p05"]):
         # Specify the file path to the image .npy file and retrieve the image
         image_file_path = f"../data/{pid}/images.npy"
         image = np.load(image_file_path)[0]

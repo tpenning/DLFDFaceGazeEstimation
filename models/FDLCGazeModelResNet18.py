@@ -4,7 +4,7 @@ from models.GazeModel import GazeModel
 from utils.device import get_device
 
 
-class FDCSGazeModelResNet18(GazeModel):
+class FDLCGazeModelResNet18(GazeModel):
     def __init__(self, model_name: str, input_channels: int, device=get_device()):
         super().__init__(device)
         self.name = model_name
