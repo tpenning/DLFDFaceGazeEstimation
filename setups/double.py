@@ -1,9 +1,7 @@
 import re
 
-from models.FDGazeModelAlexNet import FDGazeModelAlexNet
-from models.FDGazeModelResNet18 import FDGazeModelResNet18
-from models.ColorGazeModelAlexNet import ColorGazeModelAlexNet
-from models.ColorGazeModelResNet18 import ColorGazeModelResNet18
+from models.GazeModelAlexNet import GazeModelAlexNet
+from models.GazeModelResNet18 import GazeModelResNet18
 from setups.calibrate import calibrate
 from setups.train import train
 
@@ -24,17 +22,21 @@ def double(config):
 def get_models(config, model_ids):
     # Get all the 4 models to train/calibrate
     if config.data == "RGB" or config.data == "YCbCr":
-        train_alex_net = ColorGazeModelAlexNet(f"AlexNet{config.data}{config.lc_hc}{model_ids[0]}.pt", config.lc_hc)
-        calibrate_alex_net = ColorGazeModelAlexNet(f"AlexNet{config.data}{config.lc_hc}{model_ids[1]}.pt", config.lc_hc)
-        train_res_net_18 = ColorGazeModelResNet18(f"ResNet18{config.data}{config.lc_hc}{model_ids[2]}.pt", config.lc_hc)
-        calibrate_res_net_18 = ColorGazeModelResNet18(f"ResNet18{config.data}{config.lc_hc}{model_ids[3]}.pt", config.lc_hc)
+        train_alex_net = GazeModelAlexNet(f"AlexNet{config.data}{config.lc_hc}{model_ids[0]}.pt", config.lc_hc)
+        calibrate_alex_net = GazeModelAlexNet(f"AlexNet{config.data}{config.lc_hc}{model_ids[1]}.pt", config.lc_hc)
+        train_res_net_18 = GazeModelResNet18(f"ResNet18{config.data}{config.lc_hc}{model_ids[2]}.pt", config.lc_hc)
+        calibrate_res_net_18 = GazeModelResNet18(f"ResNet18{config.data}{config.lc_hc}{model_ids[3]}.pt", config.lc_hc)
     else:
         # Get the number of input channels
         input_channels = config.channel_selections[int(re.search(r'\d+', config.data).group())]
 
-        train_alex_net = FDGazeModelAlexNet(f"AlexNet{config.data}{config.lc_hc}{model_ids[0]}.pt", input_channels, config.lc_hc)
-        calibrate_alex_net = FDGazeModelAlexNet(f"AlexNet{config.data}{config.lc_hc}{model_ids[1]}.pt", input_channels, config.lc_hc)
-        train_res_net_18 = FDGazeModelResNet18(f"ResNet18{config.data}{config.lc_hc}{model_ids[2]}.pt", input_channels, config.lc_hc)
-        calibrate_res_net_18 = FDGazeModelResNet18(f"ResNet18{config.data}{config.lc_hc}{model_ids[3]}.pt", input_channels, config.lc_hc)
+        train_alex_net = GazeModelAlexNet(f"AlexNet{config.data}{config.lc_hc}{model_ids[0]}.pt",
+                                          config.lc_hc, input_channels=input_channels)
+        calibrate_alex_net = GazeModelAlexNet(f"AlexNet{config.data}{config.lc_hc}{model_ids[1]}.pt",
+                                              config.lc_hc, input_channels=input_channels)
+        train_res_net_18 = GazeModelResNet18(f"ResNet18{config.data}{config.lc_hc}{model_ids[2]}.pt",
+                                             config.lc_hc, input_channels=input_channels)
+        calibrate_res_net_18 = GazeModelResNet18(f"ResNet18{config.data}{config.lc_hc}{model_ids[3]}.pt",
+                                                 config.lc_hc, input_channels=input_channels)
 
     return train_alex_net, calibrate_alex_net, train_res_net_18, calibrate_res_net_18
