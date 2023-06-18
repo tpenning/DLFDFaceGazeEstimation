@@ -13,5 +13,6 @@ class RunConfig:
         self.channel_selections = [192, 3, 9, 12, 20, 22, 35]
         self.images = args.images
         self.model = args.model
-        self.data_type = args.data_type
+        self.data = args.data
+        self.lc_hc = args.lc_hc
         self.model_id = args.model_id

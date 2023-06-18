@@ -16,29 +16,28 @@ def select_channels(image, model: str):
 
 
 def get_channel_indices(model: str):
-    # TODO: changed this method (from just FDxCS)
     # Decide on what channels to select based on the model
-    if model == "FD0CS" or model == "FD0All":
+    if model == "FD0":
         y = np.arange(64)
         cb = np.arange(64)
         cr = np.arange(64)
-    elif model == "FD1CS" or model == "FD1All":
+    elif model == "FD1":
         y = np.array([0])
         cb = np.array([0])
         cr = np.array([0])
-    elif model == "FD2CS" or model == "FD2All":
+    elif model == "FD2":
         y = np.array([0, 1, 8])
         cb = np.array([0, 1, 8])
         cr = np.array([0, 1, 8])
-    elif model == "FD3CS" or model == "FD3All":
+    elif model == "FD3":
         y = np.array([0, 1, 2, 8, 9, 16])
         cb = np.array([0, 1, 8])
         cr = np.array([0, 1, 8])
-    elif model == "FD4CS" or model == "FD4All":
+    elif model == "FD4":
         y = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
         cb = np.array([0, 1, 3, 8, 24])
         cr = np.array([0, 1, 3, 8, 24])
-    elif model == "FD5CS" or model == "FD5All":
+    elif model == "FD5":
         y = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
         cb = np.array([0, 1, 2, 8, 9, 16])
         cr = np.array([0, 1, 2, 8, 9, 16])

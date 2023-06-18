@@ -9,7 +9,7 @@ from utils.data_help import split_data
 
 def calibrate(config, models, model_ids=None):
     # Split the dataset
-    data = ImageDataset(config.data_type, config.data_dir, config.test_subjects, 0, config.images)
+    data = ImageDataset(config.data, config.data_dir, config.test_subjects, 0, config.images)
     calibration_set, validation_set = split_data(data, config.calibration_size)
 
     # Data for calibration
