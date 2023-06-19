@@ -8,6 +8,7 @@ import torch.optim as optim
 from tqdm import tqdm
 from utils.angles import convert_angle, angular_loss
 from utils.device import get_device
+from utils.write_help import write_to_file
 from results import save_results
 
 logger = logging.getLogger(__name__)
@@ -15,19 +16,13 @@ logging.basicConfig()
 logger.setLevel(logging.INFO)
 
 
-# Write the given line to the file of the provided name
-def _write_to_file(filename, line):
-    with open(filename, 'a') as file:
-        file.write(line + '\n')
-
-
 class GazeModel(nn.Module):
-    def __init__(self, device=get_device()):
+    def __init__(self, model_name: str, experiment: str, device=get_device()):
         super().__init__()
-        self.name = f"GazeModel.pt"
+        # Configure the model
+        self.name = model_name
+        self.experiment = experiment == "experiment"
         self.best_accuracy = None
-
-        # Configure the device
         self.device = device
         self.to(device)
 
@@ -117,11 +112,14 @@ class GazeModel(nn.Module):
         save_results(full_run, model_id, learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses)
 
         # Strip the model id of the report name and save the total time taken and the best accuracy achieved
-        report_name = re.sub(rf'{model_id}\.pt$', '.txt', self.name)
-        filename = f"reports/report{report_name}"
         task = "training" if re.search('[a-zA-Z]', model_id) is None else "calibration"
-        _write_to_file(filename, f"{model_id} {task} results:\n    Total time taken: {total_time}"
-                                 f"\n    Best accuracy achieved: {self.best_accuracy}")
+        newline = "" if self.experiment else "\n"
+        experiment_run = "Experiment" if self.experiment else ""
+        report_name = re.sub(rf'{model_id}\.pt$', '.txt', self.name)
+
+        filename = f"reports/report{experiment_run}{report_name}"
+        write_to_file(filename, f"{model_id} {task} time: {total_time}")
+        write_to_file(filename, f"{model_id} {task} accuracy: {self.best_accuracy}{newline}")
 
     def inference(self, inference_data, model_id):
         # Set the device and eval state
@@ -148,7 +146,8 @@ class GazeModel(nn.Module):
         avg_accuracy = total_accuracy / len(inference_data)
 
         # Strip the model id of the report name and save the results
+        experiment_run = "Experiment" if self.experiment else ""
         report_name = re.sub(rf'{model_id}\.pt$', '.txt', self.name)
-        filename = f"reports/report{report_name}"
-        _write_to_file(filename, f"{model_id} inference results:\n    Images per second: {images_per_second}"
-                                 f"\n    Average image accuracy: {avg_accuracy}")
+        filename = f"reports/report{experiment_run}{report_name}"
+        write_to_file(filename, f"{model_id} inference time: {images_per_second}")
+        write_to_file(filename, f"{model_id} inference accuracy: {avg_accuracy}\n")

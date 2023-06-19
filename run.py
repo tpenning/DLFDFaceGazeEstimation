@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 import re
 from tqdm import tqdm
 
@@ -8,6 +9,7 @@ from models.GazeModelResNet18 import GazeModelResNet18
 from setups.calibrate import calibrate
 from setups.inference import inference
 from setups.train import train
+from utils.write_help import write_to_file
 
 
 def get_model(config):
@@ -17,9 +19,9 @@ def get_model(config):
         config.channel_selections[int(re.search(r'\d+', config.data).group())]
 
     if config.model == "AlexNet":
-        return GazeModelAlexNet(model_name, config.lc_hc, input_channels=input_channels)
+        return GazeModelAlexNet(model_name, config.lc_hc, config.run, input_channels=input_channels)
     else:
-        return GazeModelResNet18(model_name, config.lc_hc, input_channels=input_channels)
+        return GazeModelResNet18(model_name, config.lc_hc, config.run, input_channels=input_channels)
 
 
 def one_run(config):
@@ -68,6 +70,46 @@ def multiple_runs(config):
             # Update the model id for the next one
             model_id += 1
 
+        # Add the averages over the runs in the experiment report files
+        write_experiment_averages(config)
+
+
+def write_experiment_averages(config):
+    report_name = f"{config.model}{config.data}{config.lc_hc}.txt"
+    filename = f"reports/reportExperiment{report_name}"
+
+    # This list will contain the total added reported results, in order:
+    categories = ["training time", "training accuracy", "calibration time", "calibration accuracy",
+                  "inference time", "inference accuracy"]
+    total_results = np.zeros(6)
+
+    # Read the data from the file and add it correctly
+    with open(filename, "r") as file:
+        for line in file:
+            # Check if the line is non-empty
+            if line.strip():
+                # Split the identifier and value
+                information = line.strip().split(": ")
+
+                # Decide on the result value based on the identifier
+                if information[0].__contains__("training"):
+                    result_index = 0
+                elif information[0].__contains__("calibration"):
+                    result_index = 2
+                else:
+                    result_index = 4
+                if information[0].__contains__("accuracy"):
+                    result_index += 1
+
+                # Add the result to the correct value
+                total_results[result_index] += float(information[1])
+
+    # Average the results and write them to the file
+    average_results = total_results / config.model_runs
+    write_to_file(filename, "Average results over the experiment:")
+    for i in range(len(average_results)):
+        write_to_file(filename, f"Average {categories[i]}: {average_results[i]}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
@@ -111,7 +153,7 @@ if __name__ == "__main__":
                         default="full",
                         type=str,
                         required=False,
-                        help="whether train/calibrate (single), inference, a full run, or \"all\" are is done")
+                        help="whether train/calibrate (single), inference, a full run, or an experiment run is done")
 
     # Collect all the arguments
     args = parser.parse_args()
@@ -120,7 +162,7 @@ if __name__ == "__main__":
     _config = RunConfig(args)
 
     # Run the method that will set everything up and run the correct models
-    if _config.run == "all":
+    if _config.run == "experiment":
         multiple_runs(_config)
     else:
         one_run(_config)
