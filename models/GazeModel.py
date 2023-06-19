@@ -116,8 +116,8 @@ class GazeModel(nn.Module):
         # Save the losses over the epochs
         save_results(full_run, model_id, learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses)
 
-        # Strip the character of the model id and save the total time taken and the best accuracy achieved
-        report_name = re.sub(r'[A-Z]*\.pt$', '.txt', self.name)
+        # Strip the model id of the report name and save the total time taken and the best accuracy achieved
+        report_name = re.sub(rf'{model_id}\.pt$', '.txt', self.name)
         filename = f"reports/report{report_name}"
         task = "training" if re.search('[a-zA-Z]', model_id) is None else "calibration"
         _write_to_file(filename, f"{model_id} {task} results:\n    Total time taken: {total_time}"
@@ -128,24 +128,27 @@ class GazeModel(nn.Module):
         self.to(self.device)
         self.eval()
 
-        # Initialize variables to track time and accuracy
-        start_time, avg_accuracy = time.time(), 0
-
+        # Run all the images for 2 images, one for warmup and one for real so there is no loading influence
         with torch.no_grad():
-            for data, label in tqdm(inference_data):
-                label = label.to(self.device)
-                output = self.forward(data)
-                avg_accuracy += self.angular_crit(convert_angle(output), convert_angle(label)).item()
+            for i in range(2):
+                # Initialize variables to track time and accuracy for the actual run
+                if i == 1:
+                    start_time = time.time()
+                    total_accuracy = 0
 
-        # Get the total time spent
-        total_time = time.time() - start_time
+                for data, label in tqdm(inference_data):
+                    label = label.to(self.device)
+                    output = self.forward(data)
+                    if i == 1:
+                        total_accuracy += self.angular_crit(convert_angle(output), convert_angle(label)).item()
 
         # Get the images per second and the average accuracy over all the images
+        total_time = time.time() - start_time
         images_per_second = len(inference_data) / total_time
-        avg_accuracy /= len(inference_data)
+        avg_accuracy = total_accuracy / len(inference_data)
 
-        # Strip the character of the model id and save the results
-        report_name = re.sub(r'[A-Z]+\.pt$', '.txt', self.name)
+        # Strip the model id of the report name and save the results
+        report_name = re.sub(rf'{model_id}\.pt$', '.txt', self.name)
         filename = f"reports/report{report_name}"
         _write_to_file(filename, f"{model_id} inference results:\n    Images per second: {images_per_second}"
                                  f"\n    Average image accuracy: {avg_accuracy}")
