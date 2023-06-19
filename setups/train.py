@@ -4,7 +4,7 @@ from datasets.ImageDataset import ImageDataset
 from utils.data_help import split_data
 
 
-def train(config, models, model_ids=None):
+def train(config, model):
     # Split the dataset
     data = ImageDataset(config.data, config.data_dir, config.train_subjects, 0, config.images)
     training_set, validation_set = split_data(data, config.training_size)
@@ -23,11 +23,6 @@ def train(config, models, model_ids=None):
         shuffle=False
     )
 
-    # Run the models
-    for index, model in enumerate(models):
-        # Retrieve the correct model id
-        model_id = config.model_id if model_ids is None else model_ids[index]
-
-        # Run the learning process
-        model.learn(train_data, validation_data, config.train_epochs, config.learning_rate, config.saves_dir,
-                    False, model_id)
+    # Run the training process
+    model.learn(train_data, validation_data, config.train_epochs, config.learning_rate, config.saves_dir,
+                False, config.model_id)

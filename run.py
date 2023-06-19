@@ -5,36 +5,43 @@ from setups.RunConfig import RunConfig
 from models.GazeModelAlexNet import GazeModelAlexNet
 from models.GazeModelResNet18 import GazeModelResNet18
 from setups.calibrate import calibrate
-from setups.double import double
+from setups.inference import inference
 from setups.train import train
 
 
-def main(config):
-    # Run both models fully or just a single model with one stage
-    if config.model == "double":
-        double(config)
+def get_model(config):
+    # Create the correct type of model to run on and the number of input channels (None for the color models)
+    model_name = f"{config.model}{config.data}{config.lc_hc}{config.model_id}.pt"
+    input_channels = None if config.data == "RGB" or config.data == "YCbCr" else \
+        config.channel_selections[int(re.search(r'\d+', config.data).group())]
+
+    if config.model == "AlexNet":
+        return GazeModelAlexNet(model_name, config.lc_hc, input_channels=input_channels)
     else:
-        # Create the correct type of model to run on
-        model_name = f"{config.model}{config.data}{config.lc_hc}{config.model_id}.pt"
-        if config.data == "RGB" or config.data == "YCbCr":
-            if config.model == "AlexNet":
-                model = GazeModelAlexNet(model_name, config.lc_hc)
-            else:
-                model = GazeModelResNet18(model_name, config.lc_hc)
-        else:
-            # Get the number of input channels
-            input_channels = config.channel_selections[int(re.search(r'\d+', config.data).group())]
+        return GazeModelResNet18(model_name, config.lc_hc, input_channels=input_channels)
 
-            if config.model == "AlexNet":
-                model = GazeModelAlexNet(model_name, config.lc_hc, input_channels=input_channels)
-            else:
-                model = GazeModelResNet18(model_name, config.lc_hc, input_channels=input_channels)
 
-        # Run train or calibrate based on the model id
-        if re.search('[a-zA-Z]', args.model_id) is None:
-            train(config, [model])
+def main(config):
+    # Run train or calibrate based on the model id and run
+    if config.run == "single":
+        if re.search('[a-zA-Z]', config.model_id) is None:
+            train(config, get_model(config))
         else:
-            calibrate(config, [model])
+            calibrate(config, get_model(config))
+    elif config.run == "inference":
+        inference(config, get_model(config))
+    else:
+        # Run each step: training, calibration, inference for a model
+        # Strip the model id of any characters and train the model
+        config.model_id = re.sub("[^0-9]", "", config.model_id)
+        train(config, get_model(config))
+
+        # Add a training identifier to the model id and calibrate the model
+        config.model_id += "A"
+        calibrate(config, get_model(config))
+
+        # Run inference on the model
+        inference(config, get_model(config))
 
 
 if __name__ == "__main__":
@@ -49,7 +56,7 @@ if __name__ == "__main__":
 
     parser.add_argument('-model',
                         '--model',
-                        default="double",
+                        default="AlexNet",
                         type=str,
                         required=False,
                         help="what type of model to run")
@@ -72,7 +79,14 @@ if __name__ == "__main__":
                         '--model_id',
                         type=str,
                         required=True,
-                        help="id of the model")
+                        help="id of the model that is being created or inference is run on")
+
+    parser.add_argument('-run',
+                        '--run',
+                        default="single",
+                        type=str,
+                        required=False,
+                        help="whether train/calibrate (single), inference or a full run is done")
 
     # Collect all the arguments
     args = parser.parse_args()

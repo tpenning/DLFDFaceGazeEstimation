@@ -16,3 +16,4 @@ class RunConfig:
         self.data = args.data
         self.lc_hc = args.lc_hc
         self.model_id = args.model_id
+        self.run = args.run
