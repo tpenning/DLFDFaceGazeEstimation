@@ -1,5 +1,7 @@
 import os
 import logging
+import re
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -13,10 +15,17 @@ logging.basicConfig()
 logger.setLevel(logging.INFO)
 
 
+# Write the given line to the file of the provided name
+def _write_to_file(filename, line):
+    with open(filename, 'a') as file:
+        file.write(line + '\n')
+
+
 class GazeModel(nn.Module):
     def __init__(self, device=get_device()):
         super().__init__()
         self.name = f"GazeModel.pt"
+        self.best_accuracy = None
 
         # Configure the device
         self.device = device
@@ -28,7 +37,7 @@ class GazeModel(nn.Module):
         self.angular_crit = angular_loss
 
     def freeze_bn_layers(self):
-        # Freeze all Batch Normalization (BN) layers
+        # Freeze all batch normalization layers
         for module in self.modules():
             if isinstance(module, nn.BatchNorm2d) or isinstance(module, nn.BatchNorm1d):
                 module.eval()
@@ -82,10 +91,11 @@ class GazeModel(nn.Module):
         # Set the device and the optimizer
         self.to(self.device)
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
-        optimal_loss = None
 
-        # Train and evaluate with the given datasets
+        # Initialize variables to track time and accuracies
+        start_time = time.time()
         learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses = [], [], [], []
+
         for _ in tqdm(range(epochs)):
             learn_l1_loss, learn_angular_loss = self._train(learn_data)
             eval_l1_loss, eval_angular_loss = self._eval(validation_data)
@@ -96,9 +106,46 @@ class GazeModel(nn.Module):
             eval_angular_losses.append(eval_angular_loss)
 
             # Save the model when the new best evaluation loss is reached
-            if optimal_loss is None or optimal_loss >= eval_angular_loss:
-                optimal_loss = eval_angular_loss
+            if self.best_accuracy is None or self.best_accuracy >= eval_angular_loss:
+                self.best_accuracy = eval_angular_loss
                 torch.save(self.state_dict(), os.path.join(saves_dir, self.name))
 
-        # Save the losses
+        # Get the total time spent
+        total_time = time.time() - start_time
+
+        # Save the losses over the epochs
         save_results(full_run, model_id, learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses)
+
+        # Strip the character of the model id and save the total time taken and the best accuracy achieved
+        report_name = re.sub(r'[A-Z]*\.pt$', '.txt', self.name)
+        filename = f"reports/report{report_name}"
+        task = "training" if re.search('[a-zA-Z]', model_id) is None else "calibration"
+        _write_to_file(filename, f"{model_id} {task} results:\n    Total time taken: {total_time}"
+                                 f"\n    Best accuracy achieved: {self.best_accuracy}")
+
+    def inference(self, inference_data, model_id):
+        # Set the device and eval state
+        self.to(self.device)
+        self.eval()
+
+        # Initialize variables to track time and accuracy
+        start_time, avg_accuracy = time.time(), 0
+
+        with torch.no_grad():
+            for data, label in tqdm(inference_data):
+                label = label.to(self.device)
+                output = self.forward(data)
+                avg_accuracy += self.angular_crit(convert_angle(output), convert_angle(label)).item()
+
+        # Get the total time spent
+        total_time = time.time() - start_time
+
+        # Get the images per second and the average accuracy over all the images
+        images_per_second = len(inference_data) / total_time
+        avg_accuracy /= len(inference_data)
+
+        # Strip the character of the model id and save the results
+        report_name = re.sub(r'[A-Z]+\.pt$', '.txt', self.name)
+        filename = f"reports/report{report_name}"
+        _write_to_file(filename, f"{model_id} inference results:\n    Images per second: {images_per_second}"
+                                 f"\n    Average image accuracy: {avg_accuracy}")

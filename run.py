@@ -2,29 +2,46 @@ import argparse
 import re
 
 from setups.RunConfig import RunConfig
-from models.FDAllGazeModelAlexNet import FDAllGazeModelAlexNet
-from models.FDAllGazeModelResNet18 import FDAllGazeModelResNet18
-from models.FDCSGazeModelAlexNet import FDCSGazeModelAlexNet
-from models.FDCSGazeModelResNet18 import FDCSGazeModelResNet18
-from models.RGBGazeModelAlexNet import RGBGazeModelAlexNet
-from models.RGBGazeModelResNet18 import RGBGazeModelResNet18
+from models.GazeModelAlexNet import GazeModelAlexNet
+from models.GazeModelResNet18 import GazeModelResNet18
+from setups.calibrate import calibrate
+from setups.inference import inference
 from setups.train import train
-from setups.test import calibrate
 
 
-def get_input_channels(data_type: str):
-    if data_type == "FD1CS":
-        return 3
-    elif data_type == "FD2CS":
-        return 9
-    elif data_type == "FD3CS":
-        return 12
-    elif data_type == "FD4CS":
-        return 20
-    elif data_type == "FD5CS":
-        return 22
-    elif data_type == "FD6CS":
-        return 35
+def get_model(config):
+    # Create the correct type of model to run on and the number of input channels (None for the color models)
+    model_name = f"{config.model}{config.data}{config.lc_hc}{config.model_id}.pt"
+    input_channels = None if config.data == "RGB" or config.data == "YCbCr" else \
+        config.channel_selections[int(re.search(r'\d+', config.data).group())]
+
+    if config.model == "AlexNet":
+        return GazeModelAlexNet(model_name, config.lc_hc, input_channels=input_channels)
+    else:
+        return GazeModelResNet18(model_name, config.lc_hc, input_channels=input_channels)
+
+
+def main(config):
+    # Run train, calibrate, run inference or do all based on the model id and run
+    if config.run == "single":
+        if re.search('[a-zA-Z]', config.model_id) is None:
+            train(config, get_model(config))
+        else:
+            calibrate(config, get_model(config))
+    elif config.run == "inference":
+        inference(config, get_model(config))
+    else:
+        # Run each step: training, calibration, inference for a model
+        # Strip the model id of any characters and train the model
+        config.model_id = re.sub("[^0-9]", "", config.model_id)
+        train(config, get_model(config))
+
+        # Add a training identifier to the model id and calibrate the model
+        config.model_id += "A"
+        calibrate(config, get_model(config))
+
+        # Run inference on the model
+        inference(config, get_model(config))
 
 
 if __name__ == "__main__":
@@ -39,23 +56,37 @@ if __name__ == "__main__":
 
     parser.add_argument('-model',
                         '--model',
-                        default="ResNet18",
+                        default="AlexNet",
                         type=str,
                         required=False,
                         help="what type of model to run")
 
-    parser.add_argument('-data_type',
-                        '--data_type',
+    parser.add_argument('-data',
+                        '--data',
                         default="RGB",
                         type=str,
                         required=False,
-                        help="the type of date the model is running with")
+                        help="the type of data the model is running with")
+
+    parser.add_argument('-lc_hc',
+                        '--lc_hc',
+                        default="LC",
+                        type=str,
+                        required=False,
+                        help="whether the low channel or high channel version of the models should be used")
 
     parser.add_argument('-model_id',
                         '--model_id',
                         type=str,
                         required=True,
-                        help="id of the model")
+                        help="id of the model that is being created or inference is run on")
+
+    parser.add_argument('-run',
+                        '--run',
+                        default="full",
+                        type=str,
+                        required=False,
+                        help="whether train/calibrate (single), inference or a full run is done")
 
     # Collect all the arguments
     args = parser.parse_args()
@@ -63,29 +94,5 @@ if __name__ == "__main__":
     # Create a RunConfig instance to access all the parameters in the run files
     config = RunConfig(args)
 
-    # Create the correct type of model to run on
-    model_name = f"{config.model}{config.data_type}{config.model_id}.pt"
-    if config.data_type == "RGB":
-        if config.model == "AlexNet":
-            model = RGBGazeModelAlexNet(model_name)
-        else:
-            model = RGBGazeModelResNet18(model_name)
-    elif config.data_type == "FDAll":
-        if config.model == "AlexNet":
-            model = FDAllGazeModelAlexNet(model_name)
-        else:
-            model = FDAllGazeModelResNet18(model_name)
-    else:
-        # Get the number of input channels
-        input_channels = get_input_channels(config.data_type)
-
-        if config.model == "AlexNet":
-            model = FDCSGazeModelAlexNet(model_name, input_channels)
-        else:
-            model = FDCSGazeModelResNet18(model_name, input_channels)
-
-    # Run train or calibrate based on the model id
-    if re.search('[a-zA-Z]', args.model_id) is None:
-        train(config, model)
-    else:
-        calibrate(config, model)
+    # Run the main method that will set everything up and run train, test or double
+    main(config)

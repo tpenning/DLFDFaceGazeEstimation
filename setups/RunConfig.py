@@ -10,7 +10,10 @@ class RunConfig:
         self.saves_dir = "models/saves"
         self.train_subjects = [f"p{pid:02}" for pid in range(00, 14)]
         self.test_subjects = ["p14"]
+        self.channel_selections = [192, 3, 9, 12, 20, 22, 35]
         self.images = args.images
         self.model = args.model
-        self.data_type = args.data_type
+        self.data = args.data
+        self.lc_hc = args.lc_hc
         self.model_id = args.model_id
+        self.run = args.run

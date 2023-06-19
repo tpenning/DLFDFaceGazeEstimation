@@ -1,4 +1,5 @@
 import os
+import cv2
 from typing import List
 
 import numpy as np
@@ -34,9 +35,11 @@ class ImageDataset(Dataset):
     def add(self, data_dir: str, pid: str, start: int, end: int):
         images, gazes = self._load_data(data_dir, pid, start, end)
 
-        if self.data_type != "RGB":
-            images = np.array(images)
-            transformed_images = [select_channels(img, self.data_type) for img in images]
+        if self.data_type == "YCbCr":
+            transformed_images = [cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb) for image in images]
+            images = np.stack(transformed_images, axis=0)
+        elif self.data_type != "RGB":
+            transformed_images = [select_channels(image, self.data_type) for image in images]
             images = np.stack(transformed_images, axis=0)
 
         # Transpose to images to (batch_size, channels, height, width) and convert the data to tensors

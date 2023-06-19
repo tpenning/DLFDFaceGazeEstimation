@@ -6,7 +6,7 @@ from utils.data_help import split_data
 
 def train(config, model):
     # Split the dataset
-    data = ImageDataset(config.data_type, config.data_dir, config.train_subjects, 0, config.images)
+    data = ImageDataset(config.data, config.data_dir, config.train_subjects, 0, config.images)
     training_set, validation_set = split_data(data, config.training_size)
 
     # Data for training
@@ -23,6 +23,6 @@ def train(config, model):
         shuffle=False
     )
 
-    # Run the learning process
+    # Run the training process
     model.learn(train_data, validation_data, config.train_epochs, config.learning_rate, config.saves_dir,
                 False, config.model_id)
