@@ -17,6 +17,7 @@ class GazeModel(nn.Module):
     def __init__(self, device=get_device()):
         super().__init__()
         self.name = f"GazeModel.pt"
+        self.optimal_loss = None
 
         # Configure the device
         self.device = device
@@ -28,7 +29,7 @@ class GazeModel(nn.Module):
         self.angular_crit = angular_loss
 
     def freeze_bn_layers(self):
-        # Freeze all Batch Normalization (BN) layers
+        # Freeze all batch normalization layers
         for module in self.modules():
             if isinstance(module, nn.BatchNorm2d) or isinstance(module, nn.BatchNorm1d):
                 module.eval()
@@ -82,7 +83,6 @@ class GazeModel(nn.Module):
         # Set the device and the optimizer
         self.to(self.device)
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
-        optimal_loss = None
 
         # Train and evaluate with the given datasets
         learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses = [], [], [], []
@@ -96,9 +96,25 @@ class GazeModel(nn.Module):
             eval_angular_losses.append(eval_angular_loss)
 
             # Save the model when the new best evaluation loss is reached
-            if optimal_loss is None or optimal_loss >= eval_angular_loss:
-                optimal_loss = eval_angular_loss
+            if self.optimal_loss is None or self.optimal_loss >= eval_angular_loss:
+                self.optimal_loss = eval_angular_loss
                 torch.save(self.state_dict(), os.path.join(saves_dir, self.name))
 
-        # Save the losses
+        # Save the losses over the epochs, the total time taken and the best accuracy achieved
         save_results(full_run, model_id, learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses)
+
+    def inference(self, inference_data):
+        # Set the device and eval state
+        self.to(self.device)
+        self.eval()
+
+        avg_angle_loss = 0
+        with torch.no_grad():
+            for data, label in tqdm(inference_data):
+                label = label.to(self.device)
+                output = self.forward(data)
+                avg_angle_loss += self.angular_crit(convert_angle(output), convert_angle(label)).item()
+
+        # Save the total time taken and the average accuracy over all the images
+        avg_angle_loss /= len(inference_data)
+        return avg_angle_loss

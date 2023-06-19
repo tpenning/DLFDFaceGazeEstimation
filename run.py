@@ -22,7 +22,7 @@ def get_model(config):
 
 
 def main(config):
-    # Run train or calibrate based on the model id and run
+    # Run train, calibrate, run inference or do all based on the model id and run
     if config.run == "single":
         if re.search('[a-zA-Z]', config.model_id) is None:
             train(config, get_model(config))
@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
     parser.add_argument('-run',
                         '--run',
-                        default="single",
+                        default="full",
                         type=str,
                         required=False,
                         help="whether train/calibrate (single), inference or a full run is done")
