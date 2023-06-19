@@ -14,4 +14,4 @@ def inference(config, model):
 
     # Run the inference process
     model.freeze_bn_layers()
-    model.inference(inference_data)
+    model.inference(inference_data, config.model_id)
