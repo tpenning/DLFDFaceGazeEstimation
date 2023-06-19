@@ -79,9 +79,10 @@ def write_experiment_averages(config):
     filename = f"reports/reportExperiment{report_name}"
 
     # This list will contain the total added reported results, in order:
-    categories = ["training time", "training accuracy", "calibration time", "calibration accuracy",
-                  "inference time", "inference accuracy"]
-    total_results = np.zeros(6)
+    categories = 6
+    category_names = ["training time", "training accuracy", "calibration time", "calibration accuracy",
+                      "inference time", "inference accuracy"]
+    results = [[] for _ in range(categories)]
 
     # Read the data from the file and add it correctly
     with open(filename, "r") as file:
@@ -102,13 +103,12 @@ def write_experiment_averages(config):
                     result_index += 1
 
                 # Add the result to the correct value
-                total_results[result_index] += float(information[1])
+                results[result_index].append(float(information[1]))
 
-    # Average the results and write them to the file
-    average_results = total_results / config.model_runs
-    write_to_file(filename, "Average results over the experiment:")
-    for i in range(len(average_results)):
-        write_to_file(filename, f"Average {categories[i]}: {average_results[i]}")
+    # Write the results to the file
+    write_to_file(filename, "Final mean and standard deviation results over the experiment:")
+    for i in range(categories):
+        write_to_file(filename, f"Final {category_names[i]}: {np.mean(results[i])}, {np.std(results[i])}")
 
 
 if __name__ == "__main__":
