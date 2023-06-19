@@ -1,5 +1,6 @@
 import argparse
 import re
+from tqdm import tqdm
 
 from setups.RunConfig import RunConfig
 from models.GazeModelAlexNet import GazeModelAlexNet
@@ -21,7 +22,7 @@ def get_model(config):
         return GazeModelResNet18(model_name, config.lc_hc, input_channels=input_channels)
 
 
-def main(config):
+def one_run(config):
     # Run train, calibrate, run inference or do all based on the model id and run
     if config.run == "single":
         if re.search('[a-zA-Z]', config.model_id) is None:
@@ -42,6 +43,30 @@ def main(config):
 
         # Run inference on the model
         inference(config, get_model(config))
+
+
+def multiple_runs(config):
+    # Get the int value of the model and strip any characters on it
+    model_id = int(re.sub("[^0-9]", "", config.model_id))
+
+    for i in tqdm(range(4)):
+        # Change the config for correct model to run
+        if i < 2:
+            config.model = "AlexNet"
+        else:
+            config.model = "ResNet18"
+        if i % 2 == 0:
+            config.lc_hc = "LC"
+        else:
+            config.lc_hc = "HC"
+
+        for _ in tqdm(range(config.model_runs)):
+            # Set the model id in the config and run full for the model (all is the same as full in one_run)
+            config.model_id = str(model_id)
+            one_run(config)
+
+            # Update the model id for the next one
+            model_id += 1
 
 
 if __name__ == "__main__":
@@ -86,13 +111,16 @@ if __name__ == "__main__":
                         default="full",
                         type=str,
                         required=False,
-                        help="whether train/calibrate (single), inference or a full run is done")
+                        help="whether train/calibrate (single), inference, a full run, or \"all\" are is done")
 
     # Collect all the arguments
     args = parser.parse_args()
 
     # Create a RunConfig instance to access all the parameters in the run files
-    config = RunConfig(args)
+    _config = RunConfig(args)
 
-    # Run the main method that will set everything up and run train, test or double
-    main(config)
+    # Run the method that will set everything up and run the correct models
+    if _config.run == "all":
+        multiple_runs(_config)
+    else:
+        one_run(_config)

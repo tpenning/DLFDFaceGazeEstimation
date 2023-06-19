@@ -11,6 +11,7 @@ class RunConfig:
         self.train_subjects = [f"p{pid:02}" for pid in range(00, 14)]
         self.test_subjects = ["p14"]
         self.channel_selections = [192, 3, 9, 12, 20, 22, 35]
+        self.model_runs = 10
         self.images = args.images
         self.model = args.model
         self.data = args.data
