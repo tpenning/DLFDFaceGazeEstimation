@@ -1,12 +1,10 @@
 import torch
 from torch.utils.data import DataLoader
 
-from datasets.ImageDataset import ImageDataset
 
-
-def inference(config, model):
+def inference(config, data, model):
     # Data for inference
-    inference_data = DataLoader(ImageDataset(config.data, config.data_dir, config.test_subjects, 0, config.images))
+    inference_data = DataLoader(data)
 
     # Load the given model with the calibrated model data
     model_path = f"models/saves/{model.name}"

@@ -1,12 +1,10 @@
 from torch.utils.data import DataLoader
 
-from datasets.ImageDataset import ImageDataset
 from utils.data_help import split_data
 
 
-def train(config, model):
+def train(config, data, model):
     # Split the dataset
-    data = ImageDataset(config.data, config.data_dir, config.train_subjects, 0, config.images)
     training_set, validation_set = split_data(data, config.training_size)
 
     # Data for training

@@ -1,15 +1,12 @@
 import torch
 import re
-
 from torch.utils.data import DataLoader
 
-from datasets.ImageDataset import ImageDataset
 from utils.data_help import split_data
 
 
-def calibrate(config, model):
+def calibrate(config, data, model):
     # Split the dataset
-    data = ImageDataset(config.data, config.data_dir, config.test_subjects, 0, config.images)
     calibration_set, validation_set = split_data(data, config.calibration_size)
 
     # Data for calibration

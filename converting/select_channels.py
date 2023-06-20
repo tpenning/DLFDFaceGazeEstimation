@@ -17,11 +17,7 @@ def select_channels(image, model: str):
 
 def get_channel_indices(model: str):
     # Decide on what channels to select based on the model
-    if model == "FD0":
-        y = np.arange(64)
-        cb = np.arange(64)
-        cr = np.arange(64)
-    elif model == "FD1":
+    if model == "FD1":
         y = np.array([0])
         cb = np.array([0])
         cr = np.array([0])
@@ -41,18 +37,16 @@ def get_channel_indices(model: str):
         y = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
         cb = np.array([0, 1, 2, 8, 9, 16])
         cr = np.array([0, 1, 2, 8, 9, 16])
-    else:
+    elif model == "FD6":
         y = np.array([0, 1, 2, 3, 4, 8, 9, 10, 11, 16, 17, 18, 24, 25, 32])
         cb = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
         cr = np.array([0, 1, 2, 3, 8, 9, 10, 16, 17, 24])
+    else:
+        # All the channels for the 192 channel baseline and the dynamic channel selection models
+        y = np.arange(64)
+        cb = np.arange(64)
+        cr = np.arange(64)
 
     # Concatenate the channel indices to select and adjust them to fit
     channels_to_select = np.concatenate([y, cb + 64, cr + 128])
     return channels_to_select
-
-
-if __name__ == "__main__":
-    # Specify the file path to the image .npy file and retrieve one
-    image_file_path = "../data/p00/images.npy"
-    image = np.load(image_file_path)[0]
-    selected_channels = select_channels(image, "FDAll")

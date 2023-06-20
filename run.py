@@ -4,6 +4,7 @@ import re
 from tqdm import tqdm
 
 from setups.RunConfig import RunConfig
+from datasets.ImageDataset import ImageDataset
 from models.GazeModelAlexNet import GazeModelAlexNet
 from models.GazeModelResNet18 import GazeModelResNet18
 from setups.calibrate import calibrate
@@ -17,39 +18,54 @@ def get_model(config):
     model_name = f"{config.model}{config.data}{config.lc_hc}{config.model_id}.pt"
     input_channels = None if config.data == "RGB" or config.data == "YCbCr" else \
         config.channel_selections[int(re.search(r'\d+', config.data).group())]
+    dynamic = config.model_id.__contains__("FDD")
 
     if config.model == "AlexNet":
-        return GazeModelAlexNet(model_name, config.lc_hc, config.run, input_channels=input_channels)
+        return GazeModelAlexNet(model_name, config.lc_hc, config.run, input_channels=input_channels, dynamic=dynamic)
     else:
-        return GazeModelResNet18(model_name, config.lc_hc, config.run, input_channels=input_channels)
+        return GazeModelResNet18(model_name, config.lc_hc, config.run, input_channels=input_channels, dynamic=dynamic)
 
 
-def one_run(config):
+def one_run(config, training_data=None, testing_data=None):
     # Run train, calibrate, run inference or do all based on the model id and run
     if config.run == "single":
         if re.search('[a-zA-Z]', config.model_id) is None:
-            train(config, get_model(config))
+            if training_data is None:
+                training_data = ImageDataset(config.data, config.data_dir, config.train_subjects, 0, config.images)
+            train(config, training_data, get_model(config))
         else:
-            calibrate(config, get_model(config))
+            if testing_data is None:
+                testing_data = ImageDataset(config.data, config.data_dir, config.test_subjects, 0, config.images)
+            calibrate(config, testing_data, get_model(config))
     elif config.run == "inference":
-        inference(config, get_model(config))
+        if testing_data is None:
+            testing_data = ImageDataset(config.data, config.data_dir, config.test_subjects, 0, config.images)
+        inference(config, testing_data, get_model(config))
     else:
+        # Create the datasets if they aren't provided from experiment
+        if training_data is None:
+            training_data = ImageDataset(config.data, config.data_dir, config.train_subjects, 0, config.images)
+        if testing_data is None:
+            testing_data = ImageDataset(config.data, config.data_dir, config.test_subjects, 0, config.images)
+
         # Run each step: training, calibration, inference for a model
         # Strip the model id of any characters and train the model
         config.model_id = re.sub("[^0-9]", "", config.model_id)
-        train(config, get_model(config))
+        train(config, training_data, get_model(config))
 
         # Add a training identifier to the model id and calibrate the model
         config.model_id += "A"
-        calibrate(config, get_model(config))
+        calibrate(config, testing_data, get_model(config))
 
         # Run inference on the model
-        inference(config, get_model(config))
+        inference(config, testing_data, get_model(config))
 
 
-def multiple_runs(config):
-    # Get the int value of the model and strip any characters on it
+def experiment(config):
+    # Get the int value of the model and strip any characters on it and create the datasets
     model_id = int(re.sub("[^0-9]", "", config.model_id))
+    training_data = ImageDataset(config.data, config.data_dir, config.train_subjects, 0, config.images)
+    testing_data = ImageDataset(config.data, config.data_dir, config.test_subjects, 0, config.images)
 
     for i in tqdm(range(4)):
         # Change the config for correct model to run
@@ -65,7 +81,7 @@ def multiple_runs(config):
         for _ in tqdm(range(config.model_runs)):
             # Set the model id in the config and run full for the model (all is the same as full in one_run)
             config.model_id = str(model_id)
-            one_run(config)
+            one_run(config, training_data, testing_data)
 
             # Update the model id for the next one
             model_id += 1
@@ -163,6 +179,6 @@ if __name__ == "__main__":
 
     # Run the method that will set everything up and run the correct models
     if _config.run == "experiment":
-        multiple_runs(_config)
+        experiment(_config)
     else:
         one_run(_config)
