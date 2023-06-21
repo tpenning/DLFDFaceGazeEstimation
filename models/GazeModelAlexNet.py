@@ -5,18 +5,18 @@ from utils.device import get_device
 
 
 class GazeModelAlexNet(GazeModel):
-    def __init__(self, model_name: str, lc_hc: str, experiment: str, input_channels=None, dynamic=None, device=get_device()):
+    def __init__(self, model_name: str, lc_hc: str, experiment: str, input_channels=None, dynamic=False, device=get_device()):
         super().__init__(model_name, experiment, device)
         # Set the variables for the model version to run
         self.input_channels = input_channels
-        self.dynamic = dynamic is not None
+        self.dynamic = dynamic
         self.params = [3, 11, 4, 2, 3, 5, 2] if self.input_channels is None else [self.input_channels, 3, 1, 1, 2, 3, 1]
         self.channels = [96, 256, 384, 384, 256, 9216 if self.input_channels is None else 2304]
         if lc_hc == "HC":
             self.channels = [channel * 2 for channel in self.channels]
 
         # Dynamic channel selection layers
-        self.dynamic_cs = DynamicCSModel(dynamic) if self.dynamic else None
+        self.dynamic_cs = DynamicCSModel() if self.dynamic else None
 
         # Convolutional layers changed to adapt to the small data size
         self.conv1 = nn.Sequential(
