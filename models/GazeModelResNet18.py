@@ -6,18 +6,18 @@ from utils.device import get_device
 
 
 class GazeModelResNet18(GazeModel):
-    def __init__(self, model_name: str, lc_hc: str, experiment: str, input_channels=None, dynamic=False, device=get_device()):
+    def __init__(self, model_name: str, lc_hc: str, experiment: str, input_channels=None, dynamic=None, device=get_device()):
         super().__init__(model_name, experiment, device)
         # Set the variables for the model version to run
         self.input_channels = input_channels
-        self.dynamic = dynamic
+        self.dynamic = dynamic is not None
         self.params = [3, 7, 2, 3, 2] if self.input_channels is None else [self.input_channels, 2, 1, 1, 1]
         self.channels = [64, 128, 256, 512]
         if lc_hc == "HC":
             self.channels = [channel * 2 for channel in self.channels]
 
         # Dynamic channel selection layers
-        self.dynamic_cs = DynamicCSModel() if self.dynamic else None
+        self.dynamic_cs = DynamicCSModel(dynamic) if self.dynamic else None
 
         # Get the ResNet18 model
         self.resnet = models.resnet18()

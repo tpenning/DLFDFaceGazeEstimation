@@ -18,7 +18,7 @@ def get_model(config):
     model_name = f"{config.model}{config.data}{config.lc_hc}{config.model_id}.pt"
     input_channels = None if config.data == "RGB" or config.data == "YCbCr" else \
         config.channel_selections[int(re.search(r'\d+', config.data).group())]
-    dynamic = config.model_id.__contains__("FDD")
+    dynamic = config.dynamic_threshold if config.data.__contains__("FDD") else None
 
     if config.model == "AlexNet":
         return GazeModelAlexNet(model_name, config.lc_hc, config.run, input_channels=input_channels, dynamic=dynamic)
