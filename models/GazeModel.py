@@ -17,11 +17,13 @@ logger.setLevel(logging.INFO)
 
 
 class GazeModel(nn.Module):
-    def __init__(self, model_name: str, experiment: str, device=get_device()):
+    def __init__(self, model_name: str, experiment: str, channel_regularization: float, dynamic=False, device=get_device()):
         super().__init__()
         # Configure the model
         self.name = model_name
         self.experiment = experiment == "experiment"
+        self.channel_regularization = channel_regularization
+        self.dynamic = dynamic
         self.best_accuracy = None
         self.device = device
         self.to(device)
@@ -39,6 +41,18 @@ class GazeModel(nn.Module):
                 module.weight.requires_grad = False
                 module.bias.requires_grad = False
 
+    def l1_cs_crit(self, output, label):
+        # Determine the loss based on l1 and possible the channel amount for FDD
+        if self.dynamic:
+            l1_loss = self.l1_crit(output[:, :2], label)
+            cs_loss = self.channel_regularization * torch.mean(output[:, :3])
+            l1_cs_loss = l1_loss + cs_loss
+
+            print(f"L1 loss ({l1_loss}), CS loss ({cs_loss}), Full loss ({l1_cs_loss})")
+            return l1_cs_loss
+        else:
+            return self.l1_crit(output, label)
+
     def _train(self, train_data):
         self.train()
 
@@ -49,12 +63,18 @@ class GazeModel(nn.Module):
                 label = label.to(self.device)
                 output = self.forward(data)
 
-                l1_loss = self.l1_crit(output, label)
-                avg_l1_loss += l1_loss.item()
-                avg_angle_loss += self.angular_crit(convert_angle(output), convert_angle(label)).item()
+                # Correct the output for FDD selected channel amount
+                if self.dynamic:
+                    angle = output[:, :2]
+                else:
+                    angle = output
+
+                l1_cs_loss = self.l1_cs_crit(output, label)
+                avg_l1_loss += l1_cs_loss.item()
+                avg_angle_loss += self.angular_crit(convert_angle(angle), convert_angle(label)).item()
 
                 # Update the network
-                l1_loss.backward()
+                l1_cs_loss.backward()
                 self.optimizer.step()
 
             except Exception as e:
@@ -75,8 +95,15 @@ class GazeModel(nn.Module):
                 label = label.to(self.device)
                 output = self.forward(data)
 
-                avg_l1_loss += self.l1_crit(output, label).item()
-                avg_angle_loss += self.angular_crit(convert_angle(output), convert_angle(label)).item()
+                # Correct the output for FDD selected channel amount
+                if self.dynamic:
+                    angle = output[:, :2]
+                else:
+                    angle = output
+
+                l1_cs_loss = self.l1_cs_crit(output, label)
+                avg_l1_loss += l1_cs_loss.item()
+                avg_angle_loss += self.angular_crit(convert_angle(angle), convert_angle(label)).item()
 
         avg_l1_loss /= len(validation_data)
         avg_angle_loss /= len(validation_data)
@@ -137,8 +164,15 @@ class GazeModel(nn.Module):
                 for data, label in tqdm(inference_data):
                     label = label.to(self.device)
                     output = self.forward(data)
+
+                    # Correct the output for FDD selected channel amount
+                    if self.dynamic:
+                        angle = output[:, :2]
+                    else:
+                        angle = output
+
                     if i == 1:
-                        total_accuracy += self.angular_crit(convert_angle(output), convert_angle(label)).item()
+                        total_accuracy += self.angular_crit(convert_angle(angle), convert_angle(label)).item()
 
         # Get the images per second and the average accuracy over all the images
         total_time = time.time() - start_time

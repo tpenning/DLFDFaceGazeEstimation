@@ -21,9 +21,11 @@ def get_model(config):
     dynamic = config.data.__contains__("FDD")
 
     if config.model == "AlexNet":
-        return GazeModelAlexNet(model_name, config.lc_hc, config.run, input_channels=input_channels, dynamic=dynamic)
+        return GazeModelAlexNet(model_name, config.lc_hc, config.run, config.channel_regularization,
+                                input_channels=input_channels, dynamic=dynamic)
     else:
-        return GazeModelResNet18(model_name, config.lc_hc, config.run, input_channels=input_channels, dynamic=dynamic)
+        return GazeModelResNet18(model_name, config.lc_hc, config.run, config.channel_regularization,
+                                 input_channels=input_channels, dynamic=dynamic)
 
 
 def one_run(config, training_data=None, testing_data=None):

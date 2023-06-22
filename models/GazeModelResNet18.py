@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torchvision.models as models
 from models.DynamicCSModel import DynamicCSModel
@@ -6,11 +7,10 @@ from utils.device import get_device
 
 
 class GazeModelResNet18(GazeModel):
-    def __init__(self, model_name: str, lc_hc: str, experiment: str, input_channels=None, dynamic=False, device=get_device()):
-        super().__init__(model_name, experiment, device)
+    def __init__(self, model_name: str, lc_hc: str, experiment: str, channel_regularization: float, input_channels=None, dynamic=False, device=get_device()):
+        super().__init__(model_name, experiment, channel_regularization, dynamic, device)
         # Set the variables for the model version to run
         self.input_channels = input_channels
-        self.dynamic = dynamic
         self.params = [3, 7, 2, 3, 2] if self.input_channels is None else [self.input_channels, 2, 1, 1, 1]
         self.channels = [64, 128, 256, 512]
         if lc_hc == "HC":
@@ -41,12 +41,20 @@ class GazeModelResNet18(GazeModel):
 
         # Dynamic channel selection layers
         if self.dynamic:
-            image = self.dynamic_cs(image)
+            image, selected_amount = self.dynamic_cs(image)
+        else:
+            selected_amount = None
 
         # ResNet18 layers
         image = self.resnet(image)
 
-        return image
+        # When running and FDD model add the selected amount to the output
+        if self.dynamic:
+            result = torch.cat((image, selected_amount), dim=1)
+        else:
+            result = image
+
+        return result
 
     def _adjust_channels(self, layer, in_channels, out_channels, stride=1, downsample_stride=0):
         # Adjust the numbers of channels for the downsample part of the residual block
