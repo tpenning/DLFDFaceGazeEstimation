@@ -18,11 +18,14 @@ def get_model(config):
     model_name = f"{config.model}{config.data}{config.lc_hc}{config.model_id}.pt"
     input_channels = None if config.data == "RGB" or config.data == "YCbCr" else \
         config.channel_selections[int(re.search(r'\d+', config.data).group())]
+    dynamic = config.data.__contains__("FDD")
 
     if config.model == "AlexNet":
-        return GazeModelAlexNet(model_name, config.lc_hc, config.run, input_channels=input_channels)
+        return GazeModelAlexNet(model_name, config.lc_hc, config.run, config.channel_regularization,
+                                input_channels=input_channels, dynamic=dynamic)
     else:
-        return GazeModelResNet18(model_name, config.lc_hc, config.run, input_channels=input_channels)
+        return GazeModelResNet18(model_name, config.lc_hc, config.run, config.channel_regularization,
+                                 input_channels=input_channels, dynamic=dynamic)
 
 
 def one_run(config, training_data=None, testing_data=None):

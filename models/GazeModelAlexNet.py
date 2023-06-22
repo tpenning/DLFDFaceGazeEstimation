@@ -1,17 +1,22 @@
+import torch
 import torch.nn as nn
+from models.DynamicCSModel import DynamicCSModel
 from models.GazeModel import GazeModel
 from utils.device import get_device
 
 
 class GazeModelAlexNet(GazeModel):
-    def __init__(self, model_name: str, lc_hc: str, experiment: str, input_channels=None, device=get_device()):
-        super().__init__(model_name, experiment, device)
+    def __init__(self, model_name: str, lc_hc: str, experiment: str, channel_regularization: float, input_channels=None, dynamic=False, device=get_device()):
+        super().__init__(model_name, experiment, channel_regularization, dynamic, device)
         # Set the variables for the model version to run
         self.input_channels = input_channels
         self.params = [3, 11, 4, 2, 3, 5, 2] if self.input_channels is None else [self.input_channels, 3, 1, 1, 2, 3, 1]
         self.channels = [96, 256, 384, 384, 256, 9216 if self.input_channels is None else 2304]
         if lc_hc == "HC":
             self.channels = [channel * 2 for channel in self.channels]
+
+        # Dynamic channel selection layers
+        self.dynamic_cs = DynamicCSModel() if self.dynamic else None
 
         # Convolutional layers changed to adapt to the small data size
         self.conv1 = nn.Sequential(
@@ -46,6 +51,12 @@ class GazeModelAlexNet(GazeModel):
     def forward(self, image):
         image = image.to(self.device)
 
+        # Dynamic channel selection layers
+        if self.dynamic:
+            image, selected_amount = self.dynamic_cs(image)
+        else:
+            selected_amount = None
+
         # Convolutional layers
         image = self.conv1(image)
         image = self.conv2(image)
@@ -57,4 +68,11 @@ class GazeModelAlexNet(GazeModel):
         image = image.reshape(image.size(0), -1)
         image = self.fc1(image)
         image = self.fc2(image)
-        return image
+
+        # When running and FDD model add the selected amount to the output
+        if self.dynamic:
+            result = torch.cat((image, selected_amount), dim=1)
+        else:
+            result = image
+
+        return result
