@@ -42,15 +42,15 @@ class GazeModel(nn.Module):
                 module.bias.requires_grad = False
 
     def l1_cs_crit(self, output, label):
-        # Determine the loss based on l1 and possible the channel amount for FDD
         if self.dynamic:
+            # Determine the loss based on l1 and possible the channel amount for FDD
             l1_loss = self.l1_crit(output[:, :2], label)
             cs_loss = self.channel_regularization * torch.mean(output[:, :3])
             l1_cs_loss = l1_loss + cs_loss
 
-            print(f"L1 loss ({l1_loss}), CS loss ({cs_loss}), Full loss ({l1_cs_loss})")
             return l1_cs_loss
         else:
+            # Use just l1 for the loss
             return self.l1_crit(output, label)
 
     def _train(self, train_data):
