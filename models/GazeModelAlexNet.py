@@ -75,4 +75,10 @@ class GazeModelAlexNet(GazeModel):
         else:
             result = image
 
+        self._check_nan_parameters()
         return result
+
+    def _check_nan_parameters(self):
+        for name, param in self.named_parameters():
+            if torch.isnan(param).any():
+                print(f"Parameter {name} contains nan values")
