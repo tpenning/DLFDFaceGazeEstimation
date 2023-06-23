@@ -38,8 +38,30 @@ class DynamicCSModel(nn.Module):
         # First normalize the values of probs to the range [0, 5]
         # This step is to allow the gumbel noise to have an effective impact
         probs = torch.abs(probs)
-        sum_probs = probs.sum(dim=2, keepdim=True)
-        probs = probs / (sum_probs + 1e-8)
+
+
+        # TODO: remove nan checks
+        self._check_nan_parameters()
+        has_nan0_1 = torch.isnan(probs).any().item()
+        if has_nan0_1:
+            torch.set_printoptions(threshold=float('inf'))
+            print("The error was in the abs.\n\n\n\n\n\n\n\n")
+            raise ValueError("An error occurred. Program halted.")
+
+
+        sum_probs = probs.sum(dim=2, keepdim=True) + 1e-8
+        probs = probs / sum_probs
+
+
+        # TODO: remove nan checks
+        self._check_nan_parameters()
+        has_nan0_1 = torch.isnan(probs).any().item()
+        if has_nan0_1:
+            torch.set_printoptions(threshold=float('inf'))
+            print("The error was in the division.\n\n\n\n\n\n\n\n")
+            raise ValueError("An error occurred. Program halted.")
+
+
         probs *= 5
 
         # Apply gumbel softmax which gives us results roughly results in the range [0, 1]
@@ -57,35 +79,6 @@ class DynamicCSModel(nn.Module):
         selected_image = image * selections
         print(f"Selected channels: {torch.mean(selected_amounts).item()} out of 192")
 
-        # TODO: remove nan checks
-        self._check_nan_parameters()
-        has_nan0 = torch.isnan(selected_image).any().item()
-        if has_nan0:
-            print(f"Selections (torch.isnan(selections).any().item()):")
-            torch.set_printoptions(threshold=float('inf'))
-            print(selections)
-            raise ValueError("An error occurred. Program halted.")
-        # has_nan1 = torch.isnan(selected_image).any().item()
-        # if has_nan1:
-        #     torch.set_printoptions(threshold=float('inf'))
-        #     print("has_nan1 start:")
-        #     print(image)
-        #     print("---------------------------")
-        #     print(selected_image)
-        #     print("---------------------------")
-        #     print(torch.isnan(selections).any().item())
-        #     print(selections)
-        #     print("has_nan1 end:")
-        #     raise ValueError("An error occurred. Program halted.")
-        # has_nan2 = torch.isnan(selected_amounts).any().item()
-        # if has_nan2:
-        #     torch.set_printoptions(threshold=float('inf'))
-        #     print("has_nan2 start:")
-        #     print(selections)
-        #     print("++++++++++++++++++++++++++")
-        #     print(selected_amounts)
-        #     print("has_nan2 end:")
-        #     raise ValueError("An error occurred. Program halted.")
         return selected_image, selected_amounts
 
     def _check_nan_parameters(self):

@@ -75,21 +75,4 @@ class GazeModelAlexNet(GazeModel):
         else:
             result = image
 
-        # # TODO: remove nan check
-        # self._check_nan_parameters()
-        # has_nan3 = torch.isnan(result).any().item()
-        # if has_nan3:
-        #     print("has_nan3 start:")
-        #     print(image)
-        #     print("==============================")
-        #     print(selected_amount)
-        #     print("==============================")
-        #     print(result)
-        #     print("has_nan3 end:")
-        #     raise ValueError("An error occurred. Program halted.")
         return result
-
-    def _check_nan_parameters(self):
-        for name, param in self.named_parameters():
-            if torch.isnan(param).any():
-                print(f"Parameter {name} contains nan values")
