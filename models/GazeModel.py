@@ -45,9 +45,11 @@ class GazeModel(nn.Module):
         if self.dynamic:
             # Determine the loss based on l1 and possible the channel amount for FDD
             l1_loss = self.l1_crit(output[:, :2], label)
-            cs_loss = self.channel_regularization * torch.mean(output[:, :3])
+            cs_loss = self.channel_regularization * torch.mean(output[:, 2])
             l1_cs_loss = l1_loss + cs_loss
 
+            # TODO: Remove this line later
+            print(f"L1 loss ({l1_loss}), CS loss ({cs_loss}), Full loss ({l1_cs_loss})")
             return l1_cs_loss
         else:
             # Use just l1 for the loss
@@ -63,7 +65,7 @@ class GazeModel(nn.Module):
                 label = label.to(self.device)
                 output = self.forward(data)
 
-                # The dynamic model gumbel softmax can extremely rarely create a nan which has to be removed
+                # The dynamic model gumbel softmax can rarely create a nan which has to be removed (seems cpu only)
                 # Checking continuously would be too expensive, therefore the entire batch is excluded
                 if torch.isnan(output).any().item():
                     raise ValueError("A nan value was created in the gumbel softmax of the dynamic model layers. "
@@ -98,24 +100,30 @@ class GazeModel(nn.Module):
         avg_l1_loss, avg_angle_loss = 0, 0
         with torch.no_grad():
             for data, label in tqdm(validation_data):
-                label = label.to(self.device)
-                output = self.forward(data)
+                try:
+                    label = label.to(self.device)
+                    output = self.forward(data)
 
-                # The dynamic model gumbel softmax can extremely rarely create a nan which has to be removed
-                # Checking continuously would be too expensive, therefore the entire batch is excluded
-                if torch.isnan(output).any().item():
-                    raise ValueError("A nan value was created in the gumbel softmax of the dynamic model layers. "
-                                     "This batch is hereby excluded.")
+                    # The dynamic model gumbel softmax can rarely create a nan which has to be removed (seems cpu only)
+                    # Checking continuously would be too expensive, therefore the entire batch is excluded
+                    if torch.isnan(output).any().item():
+                        raise ValueError("A nan value was created in the gumbel softmax of the dynamic model layers. "
+                                         "This batch is hereby excluded.")
 
-                # Correct the output for FDD selected channel amount
-                if self.dynamic:
-                    angle = output[:, :2]
-                else:
-                    angle = output
+                    # Correct the output for FDD selected channel amount
+                    if self.dynamic:
+                        angle = output[:, :2]
+                    else:
+                        angle = output
 
-                l1_cs_loss = self.l1_cs_crit(output, label)
-                avg_l1_loss += l1_cs_loss.item()
-                avg_angle_loss += self.angular_crit(convert_angle(angle), convert_angle(label)).item()
+                    l1_cs_loss = self.l1_cs_crit(output, label)
+                    avg_l1_loss += l1_cs_loss.item()
+                    avg_angle_loss += self.angular_crit(convert_angle(angle), convert_angle(label)).item()
+
+                except Exception as e:
+                    # Log stack trace
+                    logging.error(e, exc_info=True)
+                    continue
 
         avg_l1_loss /= len(validation_data)
         avg_angle_loss /= len(validation_data)
@@ -133,6 +141,10 @@ class GazeModel(nn.Module):
         for _ in tqdm(range(epochs)):
             learn_l1_loss, learn_angular_loss = self._train(learn_data)
             eval_l1_loss, eval_angular_loss = self._eval(validation_data)
+
+            # TODO: remove these print statements for supercomputer test run
+            print(f"learn_l1_loss - {learn_l1_loss}, learn_angular_loss - {learn_angular_loss}")
+            print(f"eval_l1_loss - {eval_l1_loss}, eval_angular_loss - {eval_angular_loss}")
 
             learn_l1_losses.append(learn_l1_loss)
             learn_angular_losses.append(learn_angular_loss)
@@ -175,24 +187,30 @@ class GazeModel(nn.Module):
                     total_accuracy = 0
 
                 for data, label in tqdm(inference_data):
-                    label = label.to(self.device)
-                    output = self.forward(data)
+                    try:
+                        label = label.to(self.device)
+                        output = self.forward(data)
 
-                    # The dynamic model gumbel softmax can extremely rarely create a nan which has to be removed
-                    # Checking continuously would be too expensive, therefore the entire batch is excluded
-                    if torch.isnan(output).any().item():
-                        total_images -= 1
-                        raise ValueError("A nan value was created in the gumbel softmax of the dynamic model layers. "
-                                         "This batch is hereby excluded.")
+                        # The dynamic model gumbel softmax can rarely create a nan which has to be removed (seems cpu only)
+                        # Checking continuously would be too expensive, therefore the entire batch is excluded
+                        if torch.isnan(output).any().item():
+                            total_images -= 1
+                            raise ValueError("A nan value was created in the gumbel softmax of the dynamic model layers. "
+                                             "This batch is hereby excluded.")
 
-                    # Correct the output for FDD selected channel amount
-                    if self.dynamic:
-                        angle = output[:, :2]
-                    else:
-                        angle = output
+                        # Correct the output for FDD selected channel amount
+                        if self.dynamic:
+                            angle = output[:, :2]
+                        else:
+                            angle = output
 
-                    if i == 1:
-                        total_accuracy += self.angular_crit(convert_angle(angle), convert_angle(label)).item()
+                        if i == 1:
+                            total_accuracy += self.angular_crit(convert_angle(angle), convert_angle(label)).item()
+
+                    except Exception as e:
+                        # Log stack trace
+                        logging.error(e, exc_info=True)
+                        continue
 
         # Get the images per second and the average accuracy over all the images
         total_time = time.time() - start_time
