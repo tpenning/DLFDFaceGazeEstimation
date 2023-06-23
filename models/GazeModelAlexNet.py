@@ -85,6 +85,7 @@ class GazeModelAlexNet(GazeModel):
             print("==============================")
             print(result)
             print("has_nan3 end:")
+            raise ValueError("An error occurred. Program halted.")
         self._check_nan_parameters()
         return result
 

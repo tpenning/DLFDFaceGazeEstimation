@@ -67,6 +67,7 @@ class DynamicCSModel(nn.Module):
             print("---------------------------")
             print(selected_image)
             print("has_nan1 end:")
+            raise ValueError("An error occurred. Program halted.")
         has_nan2 = torch.isnan(selected_amounts).any().item()
         if has_nan2:
             print("has_nan2 start:")
@@ -74,6 +75,7 @@ class DynamicCSModel(nn.Module):
             print("++++++++++++++++++++++++++")
             print(selected_amounts)
             print("has_nan2 end:")
+            raise ValueError("An error occurred. Program halted.")
         self._check_nan_parameters()
         return selected_image, selected_amounts
 
