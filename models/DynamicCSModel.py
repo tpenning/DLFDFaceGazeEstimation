@@ -56,5 +56,11 @@ class DynamicCSModel(nn.Module):
         selected_amounts = torch.sum(selections, dim=(1, 2, 3), keepdim=True).squeeze(dim=2).squeeze(dim=2)
         selected_image = image * selections
         print(f"Selected channels: {torch.mean(selected_amounts).item()} out of 192")
+        self._check_nan_parameters()
 
         return selected_image, selected_amounts
+
+    def _check_nan_parameters(self):
+        for name, param in self.named_parameters():
+            if torch.isnan(param).any():
+                print(f"Parameter {name} contains nan values")
