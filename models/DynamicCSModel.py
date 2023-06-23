@@ -42,8 +42,8 @@ class DynamicCSModel(nn.Module):
 
         # TODO: remove nan checks
         self._check_nan_parameters()
-        has_nan0_1 = torch.isnan(probs).any().item()
-        if has_nan0_1:
+        has_nan1 = torch.isnan(probs).any().item()
+        if has_nan1:
             torch.set_printoptions(threshold=float('inf'))
             print("The error was in the abs.\n\n\n\n\n\n\n\n")
             raise ValueError("An error occurred. Program halted.")
@@ -55,8 +55,8 @@ class DynamicCSModel(nn.Module):
 
         # TODO: remove nan checks
         self._check_nan_parameters()
-        has_nan0_1 = torch.isnan(probs).any().item()
-        if has_nan0_1:
+        has_nan2 = torch.isnan(probs).any().item()
+        if has_nan2:
             torch.set_printoptions(threshold=float('inf'))
             print("The error was in the division.\n\n\n\n\n\n\n\n")
             raise ValueError("An error occurred. Program halted.")
@@ -79,6 +79,13 @@ class DynamicCSModel(nn.Module):
         selected_image = image * selections
         print(f"Selected channels: {torch.mean(selected_amounts).item()} out of 192")
 
+        # TODO: remove nan checks
+        self._check_nan_parameters()
+        has_nan3 = torch.isnan(selections).any().item()
+        if has_nan3:
+            torch.set_printoptions(threshold=float('inf'))
+            print("The error was in the selections somewhere else.\n\n\n\n\n\n\n\n")
+            raise ValueError("An error occurred. Program halted.")
         return selected_image, selected_amounts
 
     def _check_nan_parameters(self):
