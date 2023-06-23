@@ -63,6 +63,12 @@ class GazeModel(nn.Module):
                 label = label.to(self.device)
                 output = self.forward(data)
 
+                # The dynamic model gumbel softmax can extremely rarely create a nan which has to be removed
+                # Checking continuously would be too expensive, therefore the entire batch is excluded
+                if torch.isnan(output).any().item():
+                    raise ValueError("A nan value was created in the gumbel softmax of the dynamic model layers. "
+                                     "This batch is hereby excluded.")
+
                 # Correct the output for FDD selected channel amount
                 if self.dynamic:
                     angle = output[:, :2]
@@ -94,6 +100,12 @@ class GazeModel(nn.Module):
             for data, label in tqdm(validation_data):
                 label = label.to(self.device)
                 output = self.forward(data)
+
+                # The dynamic model gumbel softmax can extremely rarely create a nan which has to be removed
+                # Checking continuously would be too expensive, therefore the entire batch is excluded
+                if torch.isnan(output).any().item():
+                    raise ValueError("A nan value was created in the gumbel softmax of the dynamic model layers. "
+                                     "This batch is hereby excluded.")
 
                 # Correct the output for FDD selected channel amount
                 if self.dynamic:
@@ -153,6 +165,7 @@ class GazeModel(nn.Module):
         self.to(self.device)
         self.eval()
 
+        total_images = len(inference_data)
         # Run all the images for 2 images, one for warmup and one for real so there is no loading influence
         with torch.no_grad():
             for i in range(2):
@@ -165,6 +178,13 @@ class GazeModel(nn.Module):
                     label = label.to(self.device)
                     output = self.forward(data)
 
+                    # The dynamic model gumbel softmax can extremely rarely create a nan which has to be removed
+                    # Checking continuously would be too expensive, therefore the entire batch is excluded
+                    if torch.isnan(output).any().item():
+                        total_images -= 1
+                        raise ValueError("A nan value was created in the gumbel softmax of the dynamic model layers. "
+                                         "This batch is hereby excluded.")
+
                     # Correct the output for FDD selected channel amount
                     if self.dynamic:
                         angle = output[:, :2]
@@ -176,8 +196,8 @@ class GazeModel(nn.Module):
 
         # Get the images per second and the average accuracy over all the images
         total_time = time.time() - start_time
-        images_per_second = len(inference_data) / total_time
-        avg_accuracy = total_accuracy / len(inference_data)
+        images_per_second = total_images / total_time
+        avg_accuracy = total_accuracy / total_images
 
         # Strip the model id of the report name and save the results
         experiment_run = "Experiment" if self.experiment else ""
