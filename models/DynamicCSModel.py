@@ -58,25 +58,34 @@ class DynamicCSModel(nn.Module):
         print(f"Selected channels: {torch.mean(selected_amounts).item()} out of 192")
 
         # TODO: remove nan checks
-        has_nan1 = torch.isnan(selected_image).any().item()
-        if has_nan1:
-            print("has_nan1 start:")
-            print(image)
-            print("---------------------------")
-            print(selections)
-            print("---------------------------")
-            print(selected_image)
-            print("has_nan1 end:")
-            raise ValueError("An error occurred. Program halted.")
-        has_nan2 = torch.isnan(selected_amounts).any().item()
-        if has_nan2:
-            print("has_nan2 start:")
-            print(selections)
-            print("++++++++++++++++++++++++++")
-            print(selected_amounts)
-            print("has_nan2 end:")
-            raise ValueError("An error occurred. Program halted.")
         self._check_nan_parameters()
+        has_nan0 = torch.isnan(selected_image).any().item()
+        if has_nan0:
+            print(f"Selections (torch.isnan(selections).any().item()):")
+            torch.set_printoptions(threshold=float('inf'))
+            print(selections)
+            raise ValueError("An error occurred. Program halted.")
+        # has_nan1 = torch.isnan(selected_image).any().item()
+        # if has_nan1:
+        #     torch.set_printoptions(threshold=float('inf'))
+        #     print("has_nan1 start:")
+        #     print(image)
+        #     print("---------------------------")
+        #     print(selected_image)
+        #     print("---------------------------")
+        #     print(torch.isnan(selections).any().item())
+        #     print(selections)
+        #     print("has_nan1 end:")
+        #     raise ValueError("An error occurred. Program halted.")
+        # has_nan2 = torch.isnan(selected_amounts).any().item()
+        # if has_nan2:
+        #     torch.set_printoptions(threshold=float('inf'))
+        #     print("has_nan2 start:")
+        #     print(selections)
+        #     print("++++++++++++++++++++++++++")
+        #     print(selected_amounts)
+        #     print("has_nan2 end:")
+        #     raise ValueError("An error occurred. Program halted.")
         return selected_image, selected_amounts
 
     def _check_nan_parameters(self):
