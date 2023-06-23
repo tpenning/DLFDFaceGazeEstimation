@@ -57,6 +57,23 @@ class DynamicCSModel(nn.Module):
         selected_image = image * selections
         print(f"Selected channels: {torch.mean(selected_amounts).item()} out of 192")
 
+        # TODO: remove nan checks
+        has_nan1 = torch.isnan(selected_image).any().item()
+        if has_nan1:
+            print("has_nan1 start:")
+            print(image)
+            print("---------------------------")
+            print(selections)
+            print("---------------------------")
+            print(selected_image)
+            print("has_nan1 end:")
+        has_nan2 = torch.isnan(selected_amounts).any().item()
+        if has_nan2:
+            print("has_nan2 start:")
+            print(selections)
+            print("++++++++++++++++++++++++++")
+            print(selected_amounts)
+            print("has_nan2 end:")
         self._check_nan_parameters()
         return selected_image, selected_amounts
 
