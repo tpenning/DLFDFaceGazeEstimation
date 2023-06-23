@@ -39,53 +39,77 @@ class DynamicCSModel(nn.Module):
         # This step is to allow the gumbel noise to have an effective impact
         probs = torch.abs(probs)
 
-
         # TODO: remove nan checks
         self._check_nan_parameters()
         has_nan1 = torch.isnan(probs).any().item()
         if has_nan1:
-            torch.set_printoptions(threshold=float('inf'))
             print("The error was in the abs.\n\n\n\n\n\n\n\n")
             raise ValueError("An error occurred. Program halted.")
 
-
         sum_probs = probs.sum(dim=2, keepdim=True) + 1e-8
         probs = probs / sum_probs
-
 
         # TODO: remove nan checks
         self._check_nan_parameters()
         has_nan2 = torch.isnan(probs).any().item()
         if has_nan2:
-            torch.set_printoptions(threshold=float('inf'))
             print("The error was in the division.\n\n\n\n\n\n\n\n")
             raise ValueError("An error occurred. Program halted.")
 
-
         probs *= 5
+
+        # TODO: remove nan checks
+        self._check_nan_parameters()
+        has_nan3 = torch.isnan(probs).any().item()
+        if has_nan3:
+            print("The error was in the multiplication.\n\n\n\n\n\n\n\n")
+            raise ValueError("An error occurred. Program halted.")
 
         # Apply gumbel softmax which gives us results roughly results in the range [0, 1]
         # The gumbel noise applies a random factor which can be corrected by the model by changing the ratio
         # The softmax approximates {0, 1}
         probs = F.gumbel_softmax(probs, tau=temperature, dim=2)
+
+        # TODO: remove nan checks
+        self._check_nan_parameters()
+        has_nan4 = torch.isnan(probs).any().item()
+        if has_nan4:
+            print("The error was in the gumbel.\n\n\n\n\n\n\n\n")
+            raise ValueError("An error occurred. Program halted.")
+
         selections, _ = torch.split(probs, 1, dim=2)
+
+        # TODO: remove nan checks
+        self._check_nan_parameters()
+        has_nan5 = torch.isnan(selections).any().item()
+        if has_nan5:
+            print("The error was in the split.\n\n\n\n\n\n\n\n")
+            raise ValueError("An error occurred. Program halted.")
 
         # Set the lowest (around 0.09) values to zero to reduce computational cost
         selections = (selections * 1.1) - 0.1
+
+        # TODO: remove nan checks
+        self._check_nan_parameters()
+        has_nan6 = torch.isnan(selections).any().item()
+        if has_nan6:
+            print("The error was in the math.\n\n\n\n\n\n\n\n")
+            raise ValueError("An error occurred. Program halted.")
+
         selections = self.relu(selections)
+
+        # TODO: remove nan checks
+        self._check_nan_parameters()
+        has_nan7 = torch.isnan(selections).any().item()
+        if has_nan7:
+            print("The error was in the relu.\n\n\n\n\n\n\n\n")
+            raise ValueError("An error occurred. Program halted.")
 
         # Get the amount of selected channels and select the channels for the image, then return both
         selected_amounts = torch.sum(selections, dim=(1, 2, 3), keepdim=True).squeeze(dim=2).squeeze(dim=2)
         selected_image = image * selections
         print(f"Selected channels: {torch.mean(selected_amounts).item()} out of 192")
 
-        # TODO: remove nan checks
-        self._check_nan_parameters()
-        has_nan3 = torch.isnan(selections).any().item()
-        if has_nan3:
-            torch.set_printoptions(threshold=float('inf'))
-            print("The error was in the selections somewhere else.\n\n\n\n\n\n\n\n")
-            raise ValueError("An error occurred. Program halted.")
         return selected_image, selected_amounts
 
     def _check_nan_parameters(self):
