@@ -53,8 +53,5 @@ class DynamicCSModel(nn.Module):
         # Get the amount of selected channels and select the channels for the image, then return both
         selected_amounts = torch.sum(selections, dim=(1, 2, 3), keepdim=True).squeeze(dim=2).squeeze(dim=2)
         selected_image = image * selections
-        # TODO: Remove these lines
-        selected_channels = torch.mean(selections, dim=0).squeeze(dim=1).squeeze(dim=1).tolist()
-        print(f"Selected {torch.mean(selected_amounts).item()} out of 192")
 
         return selected_image, selected_amounts

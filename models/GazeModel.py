@@ -48,8 +48,6 @@ class GazeModel(nn.Module):
             cs_loss = self.channel_regularization * torch.mean(output[:, 2])
             l1_cs_loss = l1_loss + cs_loss
 
-            # TODO: Remove this line later
-            print(f"L1 loss ({l1_loss}), CS loss ({cs_loss}), Full loss ({l1_cs_loss})")
             return l1_cs_loss
         else:
             # Use just l1 for the loss
@@ -141,10 +139,6 @@ class GazeModel(nn.Module):
         for _ in tqdm(range(epochs)):
             learn_l1_loss, learn_angular_loss = self._train(learn_data)
             eval_l1_loss, eval_angular_loss = self._eval(validation_data)
-
-            # TODO: remove these print statements for supercomputer test run
-            print(f"learn_l1_loss - {learn_l1_loss}, learn_angular_loss - {learn_angular_loss}")
-            print(f"eval_l1_loss - {eval_l1_loss}, eval_angular_loss - {eval_angular_loss}")
 
             learn_l1_losses.append(learn_l1_loss)
             learn_angular_losses.append(learn_angular_loss)
