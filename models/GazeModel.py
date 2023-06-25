@@ -24,7 +24,7 @@ class GazeModel(nn.Module):
         self.experiment = experiment == "experiment"
         self.channel_regularization = channel_regularization
         self.dynamic = dynamic
-        self.best_accuracy = None
+        self.best_error = None
         self.device = device
         self.to(device)
 
@@ -146,8 +146,8 @@ class GazeModel(nn.Module):
             eval_angular_losses.append(eval_angular_loss)
 
             # Save the model when the new best evaluation loss is reached
-            if self.best_accuracy is None or self.best_accuracy >= eval_angular_loss:
-                self.best_accuracy = eval_angular_loss
+            if self.best_error is None or self.best_error >= eval_angular_loss:
+                self.best_error = eval_angular_loss
                 torch.save(self.state_dict(), os.path.join(saves_dir, self.name))
 
         # Get the total time spent
@@ -156,7 +156,7 @@ class GazeModel(nn.Module):
         # Save the losses over the epochs
         save_results(full_run, model_id, learn_l1_losses, learn_angular_losses, eval_l1_losses, eval_angular_losses)
 
-        # Strip the model id of the report name and save the total time taken and the best accuracy achieved
+        # Strip the model id of the report name and save the total time taken and the best error achieved
         task = "training" if re.search('[a-zA-Z]', model_id) is None else "calibration"
         newline = "" if self.experiment else "\n"
         experiment_run = "Experiment" if self.experiment else ""
@@ -164,7 +164,7 @@ class GazeModel(nn.Module):
 
         filename = f"reports/report{experiment_run}{report_name}"
         write_to_file(filename, f"{model_id} {task} time: {total_time}")
-        write_to_file(filename, f"{model_id} {task} accuracy: {self.best_accuracy}{newline}")
+        write_to_file(filename, f"{model_id} {task} error: {self.best_error}{newline}")
 
     def inference(self, inference_data, model_id):
         # Set the device and eval state
@@ -175,10 +175,10 @@ class GazeModel(nn.Module):
         # Run all the images for 2 images, one for warmup and one for real so there is no loading influence
         with torch.no_grad():
             for i in range(2):
-                # Initialize variables to track time and accuracy for the actual run
+                # Initialize variables to track time and error for the actual run
                 if i == 1:
                     start_time = time.time()
-                    total_accuracy = 0
+                    total_error = 0
 
                 for data, label in tqdm(inference_data):
                     try:
@@ -199,21 +199,21 @@ class GazeModel(nn.Module):
                             angle = output
 
                         if i == 1:
-                            total_accuracy += self.angular_crit(convert_angle(angle), convert_angle(label)).item()
+                            total_error += self.angular_crit(convert_angle(angle), convert_angle(label)).item()
 
                     except Exception as e:
                         # Log stack trace
                         logging.error(e, exc_info=True)
                         continue
 
-        # Get the images per second and the average accuracy over all the images
+        # Get the images per second and the error over all the images
         total_time = time.time() - start_time
         images_per_second = total_images / total_time
-        avg_accuracy = total_accuracy / total_images
+        avg_error = total_error / total_images
 
         # Strip the model id of the report name and save the results
         experiment_run = "Experiment" if self.experiment else ""
         report_name = re.sub(rf'{model_id}\.pt$', '.txt', self.name)
         filename = f"reports/report{experiment_run}{report_name}"
-        write_to_file(filename, f"{model_id} inference time: {images_per_second}")
-        write_to_file(filename, f"{model_id} inference accuracy: {avg_accuracy}\n")
+        write_to_file(filename, f"{model_id} inference images per second: {images_per_second}")
+        write_to_file(filename, f"{model_id} inference error: {avg_error}\n")

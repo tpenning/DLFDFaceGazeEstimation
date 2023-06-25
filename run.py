@@ -98,8 +98,8 @@ def write_experiment_averages(config):
 
     # This list will contain the total added reported results, in order:
     categories = 6
-    category_names = ["training time", "training accuracy", "calibration time", "calibration accuracy",
-                      "inference time", "inference accuracy"]
+    category_names = ["training time", "training error", "calibration time", "calibration error",
+                      "inference images per second", "inference error"]
     results = [[] for _ in range(categories)]
 
     # Read the data from the file and add it correctly
@@ -117,7 +117,7 @@ def write_experiment_averages(config):
                     result_index = 2
                 else:
                     result_index = 4
-                if information[0].__contains__("accuracy"):
+                if information[0].__contains__("error"):
                     result_index += 1
 
                 # Add the result to the correct value
