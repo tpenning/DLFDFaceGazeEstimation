@@ -1,5 +1,5 @@
 # Deep Learning Frequency Domain Face Gaze Estimation
-This codebase is part of the research thesis "Channel Selection for Faster Deep Learning-based Gaze Estimation in the Frequency Domain".
+This codebase is part of the research thesis "Channel Selection for Faster Deep Learning-based Gaze Estimation in the Frequency Domain" which was performed for the Research Project 2023 TU Delft.
 This research investigates the effects of channel selection in the frequency domain on the latency and accuracy compared to traditional RGB models.
 Although other datasets can be used, the code was written to work for the MPIIFaceGaze Dataset, which can be found [here](https://perceptualui.org/research/datasets/MPIIFaceGaze/).
 In this codebase models using static and dynamic channel selection are present as well as various assisting data visualization methods.
